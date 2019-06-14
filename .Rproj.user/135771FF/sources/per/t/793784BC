@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1560427479971.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1518279404",
+    "id" : "793784BC",
+    "lastKnownWriteTime" : 1560347858,
+    "last_content_update" : 1560347858,
+    "path" : "~/Virginia/PhD project/rankingagreement/MASTERfile.R",
+    "project_path" : "MASTERfile.R",
+    "properties" : {
+        "cursorPosition" : "133,0",
+        "scrollLine" : "102"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,179 @@
+
+rm(list=ls())
+library(devtools)
+
+library(nmadata)
+library(readxl)
+
+install_github("esm-ispm-unibe-ch/NMAJags")
+install_github("esm-ispm-unibe-ch/rankingagreement")
+library(rankingagreement)
+library(NMAJags)
+library(R2jags)
+library(netmeta)
+
+
+
+nmadb = getNMADB()
+
+
+# get IDs of networks separately for binary and continuous outcome; those with inverse-variance excluded
+binaryIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Binary" & nmadb$Format!="iv",]$Record.ID
+continuousIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Continuous" & nmadb$Format!="iv",]$Record.ID
+
+
+# calculate ranking metrics for continuous outcome networks
+continuous_rm = lapply(continuousIDs,
+                         function(rid) {
+                          tryCatch({
+                            nma = runnetmeta(rid)
+                            netd = readByID(rid)
+                            if (nmadb[nmadb$Record.ID==rid,]$Harmful.Beneficial.Outcome=="Beneficial"){
+                              nmaranks = netmetaranks_B(nma,1000)
+                              altnma = alternativenma(nma, small.values = "bad")
+                              jagsranks = nmajagsranks_con_B(netd$data)
+                            }
+                            else {
+                              nmaranks = netmetaranks_H(nma,1000)
+                              altnma = alternativenma(nma)
+                              jagsranks = nmajagsranks_con(netd$data)
+                            }
+                            return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
+                                        "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
+                                        "Avg TE precision"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)))
+                          },  error=function(cond){
+                                  message(cond)
+                                  return(list(recid=rid,error=cond))
+                              }
+                          )
+                        }
+                        )
+
+names(continuous_rm) <- as.character(continuousIDs)
+head(continuous_rm)
+
+
+# calculate ranking metrics for binary outcome networks
+binary_rm = lapply(binaryIDs,
+                   function(rid) {
+                     tryCatch({
+                       nma = runnetmeta(rid)
+                       netd = readByID(rid)
+                       if (nmadb[nmadb$Record.ID==rid,]$Harmful.Beneficial.Outcome=="Beneficial"){
+                         nmaranks = netmetaranks_B(nma,1000)
+                         altnma = alternativenma(nma, small.values = "bad")
+                         jagsranks = nmajagsranks_bin_B(netd$data)
+                       }
+                       else {
+                         nmaranks = netmetaranks_H(nma,1000)
+                         altnma = alternativenma(nma)
+                         jagsranks = nmajagsranks_bin(netd$data)
+                       }
+                       return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
+                                   "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
+                                   "Avg TE precision"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)))
+                     },   error=function(cond){
+                       message(cond)
+                       return(list(recid=rid,error=cond))
+                     }
+                     )
+                   }
+)
+names(binary_rm) <- as.character(binaryIDs)
+head(binary_rm)
+
+
+#create lists with only ranks for kendall correlation
+con_ranks <- lapply(1:length(continuous_rm), function(i) continuous_rm[[i]][["ranking metrics"]][,grepl("rank",colnames(continuous_rm[[i]][["ranking metrics"]]))])
+names(con_ranks) <- as.character(continuousIDs)
+head(con_ranks)
+bin_ranks <- lapply(1:length(binary_rm), function(i) binary_rm[[i]][["ranking metrics"]][,grepl("rank",colnames(binary_rm[[i]][["ranking metrics"]]))])
+names(bin_ranks) <- as.character(binaryIDs)
+head(bin_ranks)
+
+#create lists with only ranking metrics values for spearman correlation
+#con_values <- lapply(1:length(continuous_rm), function(i) continuous_rm[[i]][["ranking metrics"]][,c(1,3,5,7,8,9,11,13)])
+#bin_values <- lapply(1:length(binary_rm), function(i) binary_rm[[i]][["ranking metrics"]][,c(1,3,5,7,8,9,11,13)])
+
+
+#calculate kendall correlation and spearman correlation
+kendall_con <- lapply(con_ranks, cor, method="kendall")
+names(kendall_con) <- as.character(continuousIDs)
+head(kendall_con)
+kendall_bin <- lapply(bin_ranks, cor, method="kendall")
+names(kendall_bin) <- as.character(binaryIDs)
+head(kendall_bin)
+
+spearman_con <- lapply(con_ranks, cor, method="spearman")
+names(spearman_con) <- as.character(continuousIDs)
+head(spearman_con)
+spearman_bin <- lapply(bin_ranks, cor, method="spearman")
+names(spearman_bin) <- as.character(binaryIDs)
+head(spearman_bin)
+
+
+
+# save all pBV vs SUCRA in a vector separately for kendall and spearman, then store median and interquartile range
+pBVvsSUCRA_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","SUCRA_ranks"]),sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["pBV ranks","SUCRA_ranks"]))
+names(pBVvsSUCRA_s) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsSUCRA_k <- c(sapply(1:length(con_ranks), function(i) kendall_con[[i]]["pBV ranks","SUCRA_ranks"]),sapply(1:length(bin_ranks), function(i) kendall_bin[[i]]["pBV ranks","SUCRA_ranks"]))
+names(pBVvsSUCRA_k) <- as.character(c(continuousIDs,binaryIDs))
+head(pBVvsSUCRA_s)
+head(pBVvsSUCRA_k)
+    res_pBVvsSUCRA_s <- paste0(summary(pBVvsSUCRA_s, digits = 3)["Median"], " (", summary(pBVvsSUCRA_s, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_s, digits = 3)["3rd Qu."], ")")
+    res_pBVvsSUCRA_k <-paste0(summary(pBVvsSUCRA_k, digits = 3)["Median"], " (", summary(pBVvsSUCRA_k, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_k, digits = 3)["3rd Qu."], ")")
+
+# save all pBV vs Avg TE in a vector separately for kendall and spearman, then store median and interquartile range
+pBVvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","Avg TE ranks"]),sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["pBV ranks","Avg TE ranks"]))
+names(pBVvsAvgTE_s) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsAvgTE_k <- c(sapply(1:length(con_ranks), function(i) kendall_con[[i]]["pBV ranks","Avg TE ranks"]),sapply(1:length(bin_ranks), function(i) kendall_bin[[i]]["pBV ranks","Avg TE ranks"]))
+names(pBVvsAvgTE_k) <- as.character(c(continuousIDs,binaryIDs))
+head(pBVvsAvgTE_s)
+head(pBVvsAvgTE_k)
+    res_pBVvsAvgTE_s <- paste0(summary(pBVvsAvgTE_s)["Median"], " (", summary(pBVvsAvgTE_s)["1st Qu."], ", ", summary(pBVvsAvgTE_s)["3rd Qu."], ")")
+    res_pBVvsAvgTE_k <-paste0(summary(pBVvsAvgTE_k, digits = 3)["Median"], " (", summary(pBVvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_k, digits = 3)["3rd Qu."], ")")
+
+# save all SUCRA vs Avg TE in a vector separately for kendall and spearman, then store median and interquartile range
+SUCRAvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["SUCRA_ranks","Avg TE ranks"]),sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["SUCRA_ranks","Avg TE ranks"]))
+names(SUCRAvsAvgTE_s) <- as.character(c(continuousIDs,binaryIDs))
+SUCRAvsAvgTE_k <- c(sapply(1:length(con_ranks), function(i) kendall_con[[i]]["SUCRA_ranks","Avg TE ranks"]),sapply(1:length(bin_ranks), function(i) kendall_bin[[i]]["SUCRA_ranks","Avg TE ranks"]))
+names(SUCRAvsAvgTE_k) <- as.character(c(continuousIDs,binaryIDs))
+head(SUCRAvsAvgTE_s)
+head(SUCRAvsAvgTE_k)
+    res_SUCRAvsAvgTE_s <- paste0(summary(SUCRAvsAvgTE_s)["Median"], " (", summary(SUCRAvsAvgTE_s)["1st Qu."], ", ", summary(SUCRAvsAvgTE_s)["3rd Qu."], ")")
+    res_SUCRAvsAvgTE_k <- paste0(summary(SUCRAvsAvgTE_k, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_k, digits = 3)["3rd Qu."], ")")
+
+# save all SUCRA vs SUCRA jags in a vector separately for kendall and spearman, then store median and interquartile range
+SUCRAvsSUCRAjags_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["SUCRA_ranks","SUCRAjags ranks"]),sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["SUCRA_ranks","SUCRAjags ranks"]))
+names(SUCRAvsSUCRAjags_s) <- as.character(c(continuousIDs,binaryIDs))
+SUCRAvsSUCRAjags_k <- c(sapply(1:length(con_ranks), function(i) kendall_con[[i]]["SUCRA_ranks","SUCRAjags ranks"]),sapply(1:length(bin_ranks), function(i) kendall_bin[[i]]["SUCRA_ranks","SUCRAjags ranks"]))
+names(SUCRAvsSUCRAjags_k) <- as.character(c(continuousIDs,binaryIDs))
+head(SUCRAvsSUCRAjags_s)
+head(SUCRAvsSUCRAjags_k)
+    sum(SUCRAvsSUCRAjags_s<0.9)/length(SUCRAvsSUCRAjags_s) # % of networks with spearman correlation <0.9
+    sum(SUCRAvsSUCRAjags_k<0.9)/length(SUCRAvsSUCRAjags_k) # % of networks with kendall correlation <0.9
+
+
+
+# store number of treatments in each network in a vector
+ntreat <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["no. treatments"]),sapply(1:length(binary_rm), function(i) binary_rm[[i]]["no. treatments"]))
+names(ntreat) <- as.character(c(continuousIDs,binaryIDs))
+head(ntreat)
+# store sample sizes in each network in a vector
+samplesizes <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["sample size"]),sapply(1:length(binary_rm), function(i) binary_rm[[i]]["sample size"]))
+names(samplesizes) <- as.character(c(continuousIDs,binaryIDs))
+head(samplesizes)
+# sample size over num of treatments
+samp_nt <- as.numeric(samplesizes)/as.numeric(ntreat)
+names(samp_nt) <- as.character(c(continuousIDs,binaryIDs))
+head(samp_nt)
+
+# store 'normalized' precision for Avg TE in each network in a vector
+AvgTEprec <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE precision"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE precision"]))
+names(AvgTEprec) <- as.character(c(continuousIDs,binaryIDs))
+head(AvgTEprec)
+
+
+
+### graphs to show relationship between correlations and networks measures (avg sample size, avg precision)
+source("plots.R")
