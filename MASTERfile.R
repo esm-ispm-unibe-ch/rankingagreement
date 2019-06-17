@@ -40,7 +40,8 @@ continuous_rm = lapply(continuousIDs,
                             }
                             return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
                                         "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
-                                        "Avg TE precision"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)))
+                                        "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)),
+                                        "Avg TE prec avg"=mean(altnma$averages$seTE^2))
                           },  error=function(cond){
                                   message(cond)
                                   return(list(recid=rid,error=cond))
@@ -71,7 +72,8 @@ binary_rm = lapply(binaryIDs,
                        }
                        return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
                                    "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
-                                   "Avg TE precision"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)))
+                                   "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)),
+                                   "Avg TE prec avg"=mean(altnma$averages$seTE^2))
                      },   error=function(cond){
                        message(cond)
                        return(list(recid=rid,error=cond))
@@ -169,10 +171,12 @@ names(samp_nt) <- as.character(c(continuousIDs,binaryIDs))
 head(samp_nt)
 
 # store 'normalized' precision for Avg TE in each network in a vector
-AvgTEprec <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE precision"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE precision"]))
-names(AvgTEprec) <- as.character(c(continuousIDs,binaryIDs))
-head(AvgTEprec)
-
+AvgTEprec_v <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE prec var"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE prec var"]))
+AvgTEprec_avg <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE prec avg"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE prec avg"]))
+names(AvgTEprec_v) <- as.character(c(continuousIDs,binaryIDs))
+head(AvgTEprec_v)
+names(AvgTEprec_avg) <- as.character(c(continuousIDs,binaryIDs))
+head(AvgTEprec_avg)
 
 
 ### graphs to show relationship between correlations and networks measures (avg sample size, avg precision)
