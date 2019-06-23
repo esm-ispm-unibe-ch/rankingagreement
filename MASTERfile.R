@@ -40,8 +40,8 @@ continuous_rm = lapply(continuousIDs,
                             }
                             return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
                                         "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
-                                        "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)),
-                                        "Avg TE prec avg"=mean(altnma$averages$seTE^2))
+                                        "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
+                                        "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
                           },  error=function(cond){
                                   message(cond)
                                   return(list(recid=rid,error=cond))
@@ -72,8 +72,8 @@ binary_rm = lapply(binaryIDs,
                        }
                        return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
                                    "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
-                                   "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2)),
-                                   "Avg TE prec avg"=mean(altnma$averages$seTE^2))
+                                   "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
+                                   "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
                      },   error=function(cond){
                        message(cond)
                        return(list(recid=rid,error=cond))
@@ -172,6 +172,7 @@ head(samp_nt)
 
 # store 'normalized' precision for Avg TE in each network in a vector
 AvgTEprec_v <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE prec var"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE prec var"]))
+# store average precision for Avg TE in each network in a vector
 AvgTEprec_avg <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE prec avg"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE prec avg"]))
 names(AvgTEprec_v) <- as.character(c(continuousIDs,binaryIDs))
 head(AvgTEprec_v)
