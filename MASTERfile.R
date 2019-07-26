@@ -45,7 +45,7 @@ continuous_rm = lapply(continuousIDs,
                             }
                             return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
                                         "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
-                                        "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
+                                        "Avg TE prec range"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
                                         "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
                           },  error=function(cond){
                                   message(cond)
@@ -77,7 +77,7 @@ binary_rm = lapply(binaryIDs,
                        }
                        return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
                                    "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
-                                   "Avg TE prec var"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
+                                   "Avg TE prec range"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
                                    "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
                      },   error=function(cond){
                        message(cond)
@@ -89,19 +89,6 @@ binary_rm = lapply(binaryIDs,
 names(binary_rm) <- as.character(binaryIDs)
 head(binary_rm)
 
-
-# store number of treatments in each network in a vector
-ntreat <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["no. treatments"]),sapply(1:length(binary_rm), function(i) binary_rm[[i]]["no. treatments"]))
-names(ntreat) <- as.character(c(continuousIDs,binaryIDs))
-head(ntreat)
-# store sample sizes in each network in a vector
-samplesizes <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["sample size"]),sapply(1:length(binary_rm), function(i) binary_rm[[i]]["sample size"]))
-names(samplesizes) <- as.character(c(continuousIDs,binaryIDs))
-head(samplesizes)
-# sample size over num of treatments
-samp_nt <- as.numeric(samplesizes)/as.numeric(ntreat)
-names(samp_nt) <- as.character(c(continuousIDs,binaryIDs))
-head(samp_nt)
 
 
 # create lists with only ranks for kendall correlation
@@ -143,13 +130,14 @@ names(pBVvsSUCRA_k) <- as.character(c(continuousIDs,binaryIDs))
 pBVvsSUCRA_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[i]][,"pBV ranks"], con_ranks[[i]][,"SUCRA_ranks"], decreasing=F)),
                    sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"pBV ranks"], bin_ranks[[i]][,"SUCRA_ranks"], decreasing=F)))
 names(pBVvsSUCRA_AP) <- as.character(c(continuousIDs,binaryIDs))
-pBVvsSUCRA_AO <- c(lapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
+pBVvsSUCRA_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
                                                               {averageoverlap(con_ranks[[i]][,"pBV ranks"],con_ranks[[i]][,"SUCRA_ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
                                                             else {NA}),
-                   lapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
+                   sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
                                                               {averageoverlap(bin_ranks[[i]][,"pBV ranks"],bin_ranks[[i]][,"SUCRA_ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
                                                             else {NA}))
 names(pBVvsSUCRA_AO) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsSUCRA_AO <- Filter(Negate(anyNA), pBVvsSUCRA_AO)   ## exclude any NAs
 
 head(pBVvsSUCRA_s)
 head(pBVvsSUCRA_k)
@@ -158,7 +146,7 @@ head(pBVvsSUCRA_AO)
     res_pBVvsSUCRA_s <- paste0(summary(pBVvsSUCRA_s, digits = 3)["Median"], " (", summary(pBVvsSUCRA_s, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_s, digits = 3)["3rd Qu."], ")")
     res_pBVvsSUCRA_k <-paste0(summary(pBVvsSUCRA_k, digits = 3)["Median"], " (", summary(pBVvsSUCRA_k, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_k, digits = 3)["3rd Qu."], ")")
     res_pBVvsSUCRA_AP <-paste0(summary(pBVvsSUCRA_AP, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AP, digits = 3)["3rd Qu."], ")")
- #   res_pBVvsSUCRA_AO <-paste0(summary(pBVvsSUCRA_AO[[]][3], digits = 3)["Median"], " (", summary(pBVvsSUCRA_AO[[]][3], digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AO[[]][3], digits = 3)["3rd Qu."], ")")
+    res_pBVvsSUCRA_AO <-paste0(summary(pBVvsSUCRA_AO, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AO, digits = 3)["3rd Qu."], ")")
 
 # save all pBV vs Avg TE in a vector separately for kendall, spearman and AP then store median and interquartile range
 pBVvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","Avg TE ranks"]),
@@ -170,13 +158,15 @@ names(pBVvsAvgTE_k) <- as.character(c(continuousIDs,binaryIDs))
 pBVvsAvgTE_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[i]][,"pBV ranks"], con_ranks[[i]][,"Avg TE ranks"], decreasing=F)),
                    sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"pBV ranks"], bin_ranks[[i]][,"Avg TE ranks"], decreasing=F)))
 names(pBVvsAvgTE_AP) <- as.character(c(continuousIDs,binaryIDs))
-pBVvsAvgTE_AO <- c(lapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
+pBVvsAvgTE_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
                                                               {averageoverlap(con_ranks[[i]][,"pBV ranks"],con_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
                                                             else {NA}),
-                    lapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
+                    sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
                                                                {averageoverlap(bin_ranks[[i]][,"pBV ranks"],bin_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
                                                             else {NA}))
 names(pBVvsAvgTE_AO) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsAvgTE_AO <- Filter(Negate(anyNA), pBVvsAvgTE_AO)   ## exclude any NAs
+
 head(pBVvsAvgTE_s)
 head(pBVvsAvgTE_k)
 head(pBVvsAvgTE_AP)
@@ -184,7 +174,7 @@ head(pBVvsAvgTE_AO)
     res_pBVvsAvgTE_s <- paste0(summary(pBVvsAvgTE_s, digits = 3)["Median"], " (", summary(pBVvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_s, digits = 3)["3rd Qu."], ")")
     res_pBVvsAvgTE_k <-paste0(summary(pBVvsAvgTE_k, digits = 3)["Median"], " (", summary(pBVvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_k, digits = 3)["3rd Qu."], ")")
     res_pBVvsAvgTE_AP <-paste0(summary(pBVvsAvgTE_AP, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
-#   res_pBVvsAvgTE_AO <-paste0(summary(pBVvsAvgTE_AO[[]][3], digits = 3)["Median"], " (", summary(pBVvsAvgTE_AO[[]][3], digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AO[[]][3], digits = 3)["3rd Qu."], ")")
+    res_pBVvsAvgTE_AO <-paste0(summary(pBVvsAvgTE_AO, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
 
 
 # save all SUCRA vs Avg TE in a vector separately for kendall, spearman and AP, then store median and interquartile range
@@ -197,13 +187,15 @@ names(SUCRAvsAvgTE_k) <- as.character(c(continuousIDs,binaryIDs))
 SUCRAvsAvgTE_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[i]][,"SUCRA_ranks"], con_ranks[[i]][,"Avg TE ranks"], decreasing=F)),
                    sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"SUCRA_ranks"], bin_ranks[[i]][,"Avg TE ranks"], decreasing=F)))
 names(SUCRAvsAvgTE_AP) <- as.character(c(continuousIDs,binaryIDs))
-SUCRAvsAvgTE_AO <- c(lapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
+SUCRAvsAvgTE_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
                                                                 {averageoverlap(con_ranks[[i]][,"SUCRA_ranks"],con_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
                                                               else {NA}),
-                    lapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
+                    sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
                                                                 {averageoverlap(bin_ranks[[i]][,"SUCRA_ranks"],bin_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
                                                               else {NA}))
 names(SUCRAvsAvgTE_AO) <- as.character(c(continuousIDs,binaryIDs))
+SUCRAvsAvgTE_AO <- Filter(Negate(anyNA), SUCRAvsAvgTE_AO)   ## exclude any NAs
+
 head(SUCRAvsAvgTE_s)
 head(SUCRAvsAvgTE_k)
 head(SUCRAvsAvgTE_AP)
@@ -211,7 +203,7 @@ head(SUCRAvsAvgTE_AO)
     res_SUCRAvsAvgTE_s <- paste0(summary(SUCRAvsAvgTE_s, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_s, digits = 3)["3rd Qu."], ")")
     res_SUCRAvsAvgTE_k <- paste0(summary(SUCRAvsAvgTE_k, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_k, digits = 3)["3rd Qu."], ")")
     res_SUCRAvsAvgTE_AP <- paste0(summary(SUCRAvsAvgTE_AP, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
-#   res_SUCRAvsAvgTE_AO <-paste0(summary(SUCRAvsAvgTE_AO[[]][3], digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AO[[]][3], digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AO[[]][3], digits = 3)["3rd Qu."], ")")
+    res_SUCRAvsAvgTE_AO <-paste0(summary(SUCRAvsAvgTE_AO, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
 
 
 # save all SUCRA vs SUCRA jags in a vector separately for kendall and spearman, then store median and interquartile range
@@ -224,12 +216,15 @@ names(SUCRAvsSUCRAjags_k) <- as.character(c(continuousIDs,binaryIDs))
 SUCRAvsSUCRAjags_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[i]][,"SUCRA_ranks"], con_ranks[[i]][,"SUCRAjags ranks"], decreasing=F)),
                          sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"SUCRA_ranks"], bin_ranks[[i]][,"SUCRAjags ranks"], decreasing=F)))
 names(SUCRAvsSUCRAjags_AP) <- as.character(c(continuousIDs,binaryIDs))
-SUCRAvsSUCRAjags_AO <- c(lapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
+SUCRAvsSUCRAjags_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
                                                                     {averageoverlap(con_ranks[[i]][,"SUCRA_ranks"],con_ranks[[i]][,"SUCRAjags ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
                                                                   else {NA}),
-                        lapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
+                        sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
                                                                     {averageoverlap(bin_ranks[[i]][,"SUCRA_ranks"],bin_ranks[[i]][,"SUCRAjags ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
                                                                   else {NA}))
+names(SUCRAvsSUCRAjags_AO) <- as.character(c(continuousIDs,binaryIDs))
+SUCRAvsSUCRAjags_AO <- Filter(Negate(anyNA), SUCRAvsSUCRAjags_AO)   ## exclude any NAs
+
 head(SUCRAvsSUCRAjags_s)
 head(SUCRAvsSUCRAjags_k)
 head(SUCRAvsSUCRAjags_AP)
@@ -237,16 +232,29 @@ head(SUCRAvsSUCRAjags_AO)
     sum(SUCRAvsSUCRAjags_s>0.9)/length(SUCRAvsSUCRAjags_s) # % of networks with spearman correlation >0.9
     sum(SUCRAvsSUCRAjags_k>0.9)/length(SUCRAvsSUCRAjags_k) # % of networks with kendall correlation >0.9
     sum(SUCRAvsSUCRAjags_AP>0.9)/length(SUCRAvsSUCRAjags_AP) # % of networks with Yilmaz AP correlation >0.9
-  #  sum(SUCRAvsSUCRAjags_AO>0.9, na.rm = T)/sum(!is.na(SUCRAvsSUCRAjags_AO))
+    sum(SUCRAvsSUCRAjags_AO>0.9)/length(SUCRAvsSUCRAjags_AO)# % of networks with AO >0.9
 
 
 
-# store 'normalized' precision for Avg TE in each network in a vector
-AvgTEprec_v <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE prec var"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE prec var"]))
+
+# store number of treatments in each network in a vector
+ntreat <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["no. treatments"]),sapply(1:length(binary_rm), function(i) binary_rm[[i]]["no. treatments"]))
+names(ntreat) <- as.character(c(continuousIDs,binaryIDs))
+head(ntreat)
+# store sample sizes in each network in a vector
+samplesizes <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["sample size"]),sapply(1:length(binary_rm), function(i) binary_rm[[i]]["sample size"]))
+names(samplesizes) <- as.character(c(continuousIDs,binaryIDs))
+head(samplesizes)
+# sample size over num of treatments
+samp_nt <- as.numeric(samplesizes)/as.numeric(ntreat)
+names(samp_nt) <- as.character(c(continuousIDs,binaryIDs))
+head(samp_nt)
+# store relative range of precision for Avg TE in each network in a vector
+AvgTEprec_range <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE prec range"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE prec range"]))
 # store average precision for Avg TE in each network in a vector
 AvgTEprec_avg <- c(sapply(1:length(continuous_rm), function(i) continuous_rm[[i]]["Avg TE prec avg"]), sapply(1:length(binary_rm), function(i) binary_rm[[i]]["Avg TE prec avg"]))
-names(AvgTEprec_v) <- as.character(c(continuousIDs,binaryIDs))
-head(AvgTEprec_v)
+names(AvgTEprec_range) <- as.character(c(continuousIDs,binaryIDs))
+head(AvgTEprec_range)
 names(AvgTEprec_avg) <- as.character(c(continuousIDs,binaryIDs))
 head(AvgTEprec_avg)
 
