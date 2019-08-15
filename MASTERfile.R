@@ -26,6 +26,7 @@ nmadb = getNMADB()
 binaryIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Binary" & nmadb$Format!="iv",]$Record.ID
 continuousIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Continuous" & nmadb$Format!="iv",]$Record.ID
 
+pdf("traceplots_cont.pdf")
 
 # calculate ranking metrics for continuous outcome networks
 continuous_rm = lapply(continuousIDs,
@@ -58,6 +59,7 @@ continuous_rm = lapply(continuousIDs,
 names(continuous_rm) <- as.character(continuousIDs)
 head(continuous_rm)
 
+dev.off()
 
 # calculate ranking metrics for binary outcome networks
 binary_rm = lapply(binaryIDs,
