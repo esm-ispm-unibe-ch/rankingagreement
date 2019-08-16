@@ -18,7 +18,7 @@ nmajagsranks_bin_B <- function(netdata) {
                             model.file = modelNMABinary.SUCRA_B)
 
   #check chain mixing
-  traceplot(NMAinJAGS,varname="tau")
+  traceplot(NMAinJAGS,varname="tau", ask=F)
 
 
   SUCRAjags_ranks <- (NMAdataBinary$nt+1) - rank(NMAinJAGS$BUGSoutput$mean$SUCRA)

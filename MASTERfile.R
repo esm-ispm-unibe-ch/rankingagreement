@@ -61,6 +61,8 @@ head(continuous_rm)
 
 dev.off()
 
+
+pdf("traceplots_bin.pdf")
 # calculate ranking metrics for binary outcome networks
 binary_rm = lapply(binaryIDs,
                    function(rid) {
@@ -91,6 +93,9 @@ binary_rm = lapply(binaryIDs,
 names(binary_rm) <- as.character(binaryIDs)
 head(binary_rm)
 
+dev.off()
+dev.off()
+dev.off()
 
 
 # create lists with only ranks for kendall correlation
