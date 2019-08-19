@@ -15,7 +15,7 @@ nmajagsranks_con_B <- function(netdata) {
   NMAinJAGS<- jags.parallel(data = NMAdataContinuous, inits = NULL,
                             parameters.to.save = c("SMD","tau", "SUCRA"),
                             n.chains = 2, n.iter = 10000,
-                            n.burnin = 1000,DIC=F,
+                            n.burnin = 1000,DIC=F, n.thin = 2,
                             model.file = modelNMAContinuous_B)
 
   #check chain mixing

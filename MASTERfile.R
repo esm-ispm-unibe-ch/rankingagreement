@@ -127,6 +127,20 @@ names(spearman_bin) <- as.character(binaryIDs)
 head(spearman_bin)
 
 
+      # checks for P-score and SUCRA ranks
+        pSCOREvsSUCRA_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["Pscore_ranks","SUCRA_ranks"]),
+                             sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["Pscore_ranks","SUCRA_ranks"]))
+        names(pSCOREvsSUCRA_s) <- as.character(c(continuousIDs,binaryIDs))
+        res_pSCOREvsSUCRA_s <- paste0(summary(pSCOREvsSUCRA_s, digits = 3)["Median"], " (", summary(pSCOREvsSUCRA_s, digits = 3)["1st Qu."], ", ", summary(pSCOREvsSUCRA_s, digits = 3)["3rd Qu."], ")")
+        sum(pSCOREvsSUCRA_s<0.99)/length(res_pSCOREvsSUCRA_s) # % of networks with spearman correlation >0.9
+        print(pSCOREvsSUCRA_s[pSCOREvsSUCRA_s<1])
+
+
+# prepare matrix to store results
+results <- matrix(nrow = 4, ncol = 3,
+                  dimnames = list(c("Spearman rho", "Kendall tau", "Yilmaz tauAP", "Average Overlap"),
+                                  c("pBV vs SUCRA", "pBV vs ATE", "SUCRA vs ATE")))
+
 # save all pBV vs SUCRA in a vector separately for kendall, spearman and AP then store median and interquartile range
 pBVvsSUCRA_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","SUCRA_ranks"]),
                   sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["pBV ranks","SUCRA_ranks"]))
@@ -150,10 +164,10 @@ head(pBVvsSUCRA_s)
 head(pBVvsSUCRA_k)
 head(pBVvsSUCRA_AP)
 head(pBVvsSUCRA_AO)
-    res_pBVvsSUCRA_s <- paste0(summary(pBVvsSUCRA_s, digits = 3)["Median"], " (", summary(pBVvsSUCRA_s, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_s, digits = 3)["3rd Qu."], ")")
-    res_pBVvsSUCRA_k <-paste0(summary(pBVvsSUCRA_k, digits = 3)["Median"], " (", summary(pBVvsSUCRA_k, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_k, digits = 3)["3rd Qu."], ")")
-    res_pBVvsSUCRA_AP <-paste0(summary(pBVvsSUCRA_AP, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AP, digits = 3)["3rd Qu."], ")")
-    res_pBVvsSUCRA_AO <-paste0(summary(pBVvsSUCRA_AO, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AO, digits = 3)["3rd Qu."], ")")
+    results["Spearman rho","pBV vs SUCRA"] <- paste0(summary(pBVvsSUCRA_s, digits = 3)["Median"], " (", summary(pBVvsSUCRA_s, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_s, digits = 3)["3rd Qu."], ")")
+    results["Kendall tau","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_k, digits = 3)["Median"], " (", summary(pBVvsSUCRA_k, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_k, digits = 3)["3rd Qu."], ")")
+    results["Yilmaz tauAP","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AP, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AP, digits = 3)["3rd Qu."], ")")
+    results["Average Overlap","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AO, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AO, digits = 3)["3rd Qu."], ")")
 
 # save all pBV vs Avg TE in a vector separately for kendall, spearman and AP then store median and interquartile range
 pBVvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","Avg TE ranks"]),
@@ -178,10 +192,10 @@ head(pBVvsAvgTE_s)
 head(pBVvsAvgTE_k)
 head(pBVvsAvgTE_AP)
 head(pBVvsAvgTE_AO)
-    res_pBVvsAvgTE_s <- paste0(summary(pBVvsAvgTE_s, digits = 3)["Median"], " (", summary(pBVvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_s, digits = 3)["3rd Qu."], ")")
-    res_pBVvsAvgTE_k <-paste0(summary(pBVvsAvgTE_k, digits = 3)["Median"], " (", summary(pBVvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_k, digits = 3)["3rd Qu."], ")")
-    res_pBVvsAvgTE_AP <-paste0(summary(pBVvsAvgTE_AP, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
-    res_pBVvsAvgTE_AO <-paste0(summary(pBVvsAvgTE_AO, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
+    results["Spearman rho","pBV vs ATE"] <- paste0(summary(pBVvsAvgTE_s, digits = 3)["Median"], " (", summary(pBVvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_s, digits = 3)["3rd Qu."], ")")
+    results["Kendall tau","pBV vs ATE"]  <-paste0(summary(pBVvsAvgTE_k, digits = 3)["Median"], " (", summary(pBVvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_k, digits = 3)["3rd Qu."], ")")
+    results["Yilmaz tauAP","pBV vs ATE"]  <-paste0(summary(pBVvsAvgTE_AP, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
+    results["Average Overlap","pBV vs ATE"] <-paste0(summary(pBVvsAvgTE_AO, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
 
 
 # save all SUCRA vs Avg TE in a vector separately for kendall, spearman and AP, then store median and interquartile range
@@ -207,10 +221,10 @@ head(SUCRAvsAvgTE_s)
 head(SUCRAvsAvgTE_k)
 head(SUCRAvsAvgTE_AP)
 head(SUCRAvsAvgTE_AO)
-    res_SUCRAvsAvgTE_s <- paste0(summary(SUCRAvsAvgTE_s, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_s, digits = 3)["3rd Qu."], ")")
-    res_SUCRAvsAvgTE_k <- paste0(summary(SUCRAvsAvgTE_k, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_k, digits = 3)["3rd Qu."], ")")
-    res_SUCRAvsAvgTE_AP <- paste0(summary(SUCRAvsAvgTE_AP, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
-    res_SUCRAvsAvgTE_AO <-paste0(summary(SUCRAvsAvgTE_AO, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
+    results["Spearman rho","SUCRA vs ATE"] <- paste0(summary(SUCRAvsAvgTE_s, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_s, digits = 3)["3rd Qu."], ")")
+    results["Kendall tau","SUCRA vs ATE"]  <- paste0(summary(SUCRAvsAvgTE_k, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_k, digits = 3)["3rd Qu."], ")")
+    results["Yilmaz tauAP","SUCRA vs ATE"] <- paste0(summary(SUCRAvsAvgTE_AP, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
+    results["Average Overlap","SUCRA vs ATE"] <-paste0(summary(SUCRAvsAvgTE_AO, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
 
 
 # save all SUCRA vs SUCRA jags in a vector separately for kendall and spearman, then store median and interquartile range
@@ -236,11 +250,16 @@ head(SUCRAvsSUCRAjags_s)
 head(SUCRAvsSUCRAjags_k)
 head(SUCRAvsSUCRAjags_AP)
 head(SUCRAvsSUCRAjags_AO)
-    sum(SUCRAvsSUCRAjags_s>0.9)/length(SUCRAvsSUCRAjags_s) # % of networks with spearman correlation >0.9
-    sum(SUCRAvsSUCRAjags_k>0.9)/length(SUCRAvsSUCRAjags_k) # % of networks with kendall correlation >0.9
-    sum(SUCRAvsSUCRAjags_AP>0.9)/length(SUCRAvsSUCRAjags_AP) # % of networks with Yilmaz AP correlation >0.9
-    sum(SUCRAvsSUCRAjags_AO>0.9)/length(SUCRAvsSUCRAjags_AO)# % of networks with AO >0.9
+    SUCRAs_90 <- sum(SUCRAvsSUCRAjags_s>0.9)/length(SUCRAvsSUCRAjags_s) # % of networks with spearman correlation >0.9
+    SUCRAk_90 <- sum(SUCRAvsSUCRAjags_k>0.9)/length(SUCRAvsSUCRAjags_k) # % of networks with kendall correlation >0.9
+    SUCRAap_90 <-  sum(SUCRAvsSUCRAjags_AP>0.9)/length(SUCRAvsSUCRAjags_AP) # % of networks with Yilmaz AP correlation >0.9
+    SUCRAao_90 <- sum(SUCRAvsSUCRAjags_AO>0.9)/length(SUCRAvsSUCRAjags_AO)# % of networks with AO >0.9
 
+
+# export matrix results in table
+install.packages("xlsx")
+library(xlsx)
+write.xlsx(results, "agreement results.xlsx")
 
 
 

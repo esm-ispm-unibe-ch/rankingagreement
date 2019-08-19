@@ -14,7 +14,7 @@ nmajagsranks_bin_B <- function(netdata) {
   NMAinJAGS<- jags.parallel(data = NMAdataBinary, inits = NULL,
                             parameters.to.save = c("ORref","tau", "SUCRA"),
                             n.chains = 2, n.iter = 10000,
-                            n.burnin = 1000,DIC=F,
+                            n.burnin = 1000,DIC=F, n.thin=2,
                             model.file = modelNMABinary.SUCRA_B)
 
   #check chain mixing
