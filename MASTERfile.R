@@ -14,6 +14,9 @@ library(netmeta)
 
 library(ircor)
 
+install.packages("xlsx")
+library(xlsx)
+
 
 
 
@@ -139,7 +142,7 @@ head(spearman_bin)
 # prepare matrix to store results
 results <- matrix(nrow = 4, ncol = 3,
                   dimnames = list(c("Spearman rho", "Kendall tau", "Yilmaz tauAP", "Average Overlap"),
-                                  c("pBV vs SUCRA", "pBV vs ATE", "SUCRA vs ATE")))
+                                  c("pBV vs SUCRA", "SUCRA vs ATE", "pBV vs ATE")))
 
 # save all pBV vs SUCRA in a vector separately for kendall, spearman and AP then store median and interquartile range
 pBVvsSUCRA_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","SUCRA_ranks"]),
@@ -152,10 +155,10 @@ pBVvsSUCRA_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[i]
                    sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"pBV ranks"], bin_ranks[[i]][,"SUCRA_ranks"], decreasing=F)))
 names(pBVvsSUCRA_AP) <- as.character(c(continuousIDs,binaryIDs))
 pBVvsSUCRA_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
-                                                              {averageoverlap(con_ranks[[i]][,"pBV ranks"],con_ranks[[i]][,"SUCRA_ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
+                                                              {averageoverlap(order(con_ranks[[i]][,"pBV ranks"]),order(con_ranks[[i]][,"SUCRA_ranks"]),floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
                                                             else {NA}),
                    sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
-                                                              {averageoverlap(bin_ranks[[i]][,"pBV ranks"],bin_ranks[[i]][,"SUCRA_ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
+                                                              {averageoverlap(order(bin_ranks[[i]][,"pBV ranks"]),order(bin_ranks[[i]][,"SUCRA_ranks"]),floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
                                                             else {NA}))
 names(pBVvsSUCRA_AO) <- as.character(c(continuousIDs,binaryIDs))
 pBVvsSUCRA_AO <- Filter(Negate(anyNA), pBVvsSUCRA_AO)   ## exclude any NAs
@@ -164,39 +167,10 @@ head(pBVvsSUCRA_s)
 head(pBVvsSUCRA_k)
 head(pBVvsSUCRA_AP)
 head(pBVvsSUCRA_AO)
-    results["Spearman rho","pBV vs SUCRA"] <- paste0(summary(pBVvsSUCRA_s, digits = 3)["Median"], " (", summary(pBVvsSUCRA_s, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_s, digits = 3)["3rd Qu."], ")")
-    results["Kendall tau","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_k, digits = 3)["Median"], " (", summary(pBVvsSUCRA_k, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_k, digits = 3)["3rd Qu."], ")")
-    results["Yilmaz tauAP","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AP, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AP, digits = 3)["3rd Qu."], ")")
-    results["Average Overlap","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AO, digits = 3)["Median"], " (", summary(pBVvsSUCRA_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsSUCRA_AO, digits = 3)["3rd Qu."], ")")
-
-# save all pBV vs Avg TE in a vector separately for kendall, spearman and AP then store median and interquartile range
-pBVvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","Avg TE ranks"]),
-                  sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["pBV ranks","Avg TE ranks"]))
-names(pBVvsAvgTE_s) <- as.character(c(continuousIDs,binaryIDs))
-pBVvsAvgTE_k <- c(sapply(1:length(con_ranks), function(i) kendall_con[[i]]["pBV ranks","Avg TE ranks"]),
-                  sapply(1:length(bin_ranks), function(i) kendall_bin[[i]]["pBV ranks","Avg TE ranks"]))
-names(pBVvsAvgTE_k) <- as.character(c(continuousIDs,binaryIDs))
-pBVvsAvgTE_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[i]][,"pBV ranks"], con_ranks[[i]][,"Avg TE ranks"], decreasing=F)),
-                   sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"pBV ranks"], bin_ranks[[i]][,"Avg TE ranks"], decreasing=F)))
-names(pBVvsAvgTE_AP) <- as.character(c(continuousIDs,binaryIDs))
-pBVvsAvgTE_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
-                                                              {averageoverlap(con_ranks[[i]][,"pBV ranks"],con_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
-                                                            else {NA}),
-                    sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
-                                                               {averageoverlap(bin_ranks[[i]][,"pBV ranks"],bin_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
-                                                            else {NA}))
-names(pBVvsAvgTE_AO) <- as.character(c(continuousIDs,binaryIDs))
-pBVvsAvgTE_AO <- Filter(Negate(anyNA), pBVvsAvgTE_AO)   ## exclude any NAs
-
-head(pBVvsAvgTE_s)
-head(pBVvsAvgTE_k)
-head(pBVvsAvgTE_AP)
-head(pBVvsAvgTE_AO)
-    results["Spearman rho","pBV vs ATE"] <- paste0(summary(pBVvsAvgTE_s, digits = 3)["Median"], " (", summary(pBVvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_s, digits = 3)["3rd Qu."], ")")
-    results["Kendall tau","pBV vs ATE"]  <-paste0(summary(pBVvsAvgTE_k, digits = 3)["Median"], " (", summary(pBVvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_k, digits = 3)["3rd Qu."], ")")
-    results["Yilmaz tauAP","pBV vs ATE"]  <-paste0(summary(pBVvsAvgTE_AP, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
-    results["Average Overlap","pBV vs ATE"] <-paste0(summary(pBVvsAvgTE_AO, digits = 3)["Median"], " (", summary(pBVvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(pBVvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
-
+    results["Spearman rho","pBV vs SUCRA"] <- paste0(summary(pBVvsSUCRA_s, digits = 2)["Median"], " (", summary(pBVvsSUCRA_s, digits = 2)["1st Qu."], ", ", summary(pBVvsSUCRA_s, digits = 2)["3rd Qu."], ")")
+    results["Kendall tau","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_k, digits = 2)["Median"], " (", summary(pBVvsSUCRA_k, digits = 2)["1st Qu."], ", ", summary(pBVvsSUCRA_k, digits = 2)["3rd Qu."], ")")
+    results["Yilmaz tauAP","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AP, digits = 2)["Median"], " (", summary(pBVvsSUCRA_AP, digits = 2)["1st Qu."], ", ", summary(pBVvsSUCRA_AP, digits = 2)["3rd Qu."], ")")
+    results["Average Overlap","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AO, digits = 2)["Median"], " (", summary(pBVvsSUCRA_AO, digits = 2)["1st Qu."], ", ", summary(pBVvsSUCRA_AO, digits = 2)["3rd Qu."], ")")
 
 # save all SUCRA vs Avg TE in a vector separately for kendall, spearman and AP, then store median and interquartile range
 SUCRAvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["SUCRA_ranks","Avg TE ranks"]),
@@ -209,10 +183,10 @@ SUCRAvsAvgTE_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[
                    sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"SUCRA_ranks"], bin_ranks[[i]][,"Avg TE ranks"], decreasing=F)))
 names(SUCRAvsAvgTE_AP) <- as.character(c(continuousIDs,binaryIDs))
 SUCRAvsAvgTE_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
-                                                                {averageoverlap(con_ranks[[i]][,"SUCRA_ranks"],con_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
+                                                                {averageoverlap(order(con_ranks[[i]][,"SUCRA_ranks"]),order(con_ranks[[i]][,"Avg TE ranks"]),floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
                                                               else {NA}),
                     sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
-                                                                {averageoverlap(bin_ranks[[i]][,"SUCRA_ranks"],bin_ranks[[i]][,"Avg TE ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
+                                                                {averageoverlap(order(bin_ranks[[i]][,"SUCRA_ranks"]),order(bin_ranks[[i]][,"Avg TE ranks"]),floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
                                                               else {NA}))
 names(SUCRAvsAvgTE_AO) <- as.character(c(continuousIDs,binaryIDs))
 SUCRAvsAvgTE_AO <- Filter(Negate(anyNA), SUCRAvsAvgTE_AO)   ## exclude any NAs
@@ -221,13 +195,44 @@ head(SUCRAvsAvgTE_s)
 head(SUCRAvsAvgTE_k)
 head(SUCRAvsAvgTE_AP)
 head(SUCRAvsAvgTE_AO)
-    results["Spearman rho","SUCRA vs ATE"] <- paste0(summary(SUCRAvsAvgTE_s, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_s, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_s, digits = 3)["3rd Qu."], ")")
-    results["Kendall tau","SUCRA vs ATE"]  <- paste0(summary(SUCRAvsAvgTE_k, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_k, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_k, digits = 3)["3rd Qu."], ")")
-    results["Yilmaz tauAP","SUCRA vs ATE"] <- paste0(summary(SUCRAvsAvgTE_AP, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AP, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AP, digits = 3)["3rd Qu."], ")")
-    results["Average Overlap","SUCRA vs ATE"] <-paste0(summary(SUCRAvsAvgTE_AO, digits = 3)["Median"], " (", summary(SUCRAvsAvgTE_AO, digits = 3)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AO, digits = 3)["3rd Qu."], ")")
+    results["Spearman rho","SUCRA vs ATE"] <- paste0(summary(SUCRAvsAvgTE_s, digits = 2)["Median"], " (", summary(SUCRAvsAvgTE_s, digits = 2)["1st Qu."], ", ", summary(SUCRAvsAvgTE_s, digits = 2)["3rd Qu."], ")")
+    results["Kendall tau","SUCRA vs ATE"]  <- paste0(summary(SUCRAvsAvgTE_k, digits = 2)["Median"], " (", summary(SUCRAvsAvgTE_k, digits = 2)["1st Qu."], ", ", summary(SUCRAvsAvgTE_k, digits = 2)["3rd Qu."], ")")
+    results["Yilmaz tauAP","SUCRA vs ATE"] <- paste0(summary(SUCRAvsAvgTE_AP, digits = 2)["Median"], " (", summary(SUCRAvsAvgTE_AP, digits = 2)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AP, digits = 2)["3rd Qu."], ")")
+    results["Average Overlap","SUCRA vs ATE"] <-paste0(summary(SUCRAvsAvgTE_AO, digits = 2)["Median"], " (", summary(SUCRAvsAvgTE_AO, digits = 2)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AO, digits = 2)["3rd Qu."], ")")
 
 
-# save all SUCRA vs SUCRA jags in a vector separately for kendall and spearman, then store median and interquartile range
+# save all pBV vs Avg TE in a vector separately for kendall, spearman and AP then store median and interquartile range
+pBVvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","Avg TE ranks"]),
+                  sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["pBV ranks","Avg TE ranks"]))
+names(pBVvsAvgTE_s) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsAvgTE_k <- c(sapply(1:length(con_ranks), function(i) kendall_con[[i]]["pBV ranks","Avg TE ranks"]),
+                  sapply(1:length(bin_ranks), function(i) kendall_bin[[i]]["pBV ranks","Avg TE ranks"]))
+names(pBVvsAvgTE_k) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsAvgTE_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ranks[[i]][,"pBV ranks"], con_ranks[[i]][,"Avg TE ranks"], decreasing=F)),
+                   sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"pBV ranks"], bin_ranks[[i]][,"Avg TE ranks"], decreasing=F)))
+names(pBVvsAvgTE_AP) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsAvgTE_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
+                                                              {averageoverlap(order(con_ranks[[i]][,"pBV ranks"]),order(con_ranks[[i]][,"Avg TE ranks"]),floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
+                                                            else {NA}),
+                    sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
+                                                               {averageoverlap(order(bin_ranks[[i]][,"pBV ranks"]),order(bin_ranks[[i]][,"Avg TE ranks"]),floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
+                                                            else {NA}))
+names(pBVvsAvgTE_AO) <- as.character(c(continuousIDs,binaryIDs))
+pBVvsAvgTE_AO <- Filter(Negate(anyNA), pBVvsAvgTE_AO)   ## exclude any NAs
+
+head(pBVvsAvgTE_s)
+head(pBVvsAvgTE_k)
+head(pBVvsAvgTE_AP)
+head(pBVvsAvgTE_AO)
+    results["Spearman rho","pBV vs ATE"] <- paste0(summary(pBVvsAvgTE_s, digits = 2)["Median"], " (", summary(pBVvsAvgTE_s, digits = 2)["1st Qu."], ", ", summary(pBVvsAvgTE_s, digits = 2)["3rd Qu."], ")")
+    results["Kendall tau","pBV vs ATE"]  <-paste0(summary(pBVvsAvgTE_k, digits = 2)["Median"], " (", summary(pBVvsAvgTE_k, digits = 2)["1st Qu."], ", ", summary(pBVvsAvgTE_k, digits = 2)["3rd Qu."], ")")
+    results["Yilmaz tauAP","pBV vs ATE"]  <-paste0(summary(pBVvsAvgTE_AP, digits = 2)["Median"], " (", summary(pBVvsAvgTE_AP, digits = 2)["1st Qu."], ", ", summary(pBVvsAvgTE_AP, digits = 2)["3rd Qu."], ")")
+    results["Average Overlap","pBV vs ATE"] <-paste0(summary(pBVvsAvgTE_AO, digits = 2)["Median"], " (", summary(pBVvsAvgTE_AO, digits = 2)["1st Qu."], ", ", summary(pBVvsAvgTE_AO, digits = 2)["3rd Qu."], ")")
+
+
+
+
+# save all SUCRA vs SUCRA jags in a vector separately for kendall and spearman, then store proportion of network with values >0.9
 SUCRAvsSUCRAjags_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["SUCRA_ranks","SUCRAjags ranks"]),
                         sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["SUCRA_ranks","SUCRAjags ranks"]))
 names(SUCRAvsSUCRAjags_s) <- as.character(c(continuousIDs,binaryIDs))
@@ -238,10 +243,10 @@ SUCRAvsSUCRAjags_AP <- c(sapply(1:length(con_ranks), function(i) tauAP_b(con_ran
                          sapply(1:length(bin_ranks), function(i) tauAP_b(bin_ranks[[i]][,"SUCRA_ranks"], bin_ranks[[i]][,"SUCRAjags ranks"], decreasing=F)))
 names(SUCRAvsSUCRAjags_AP) <- as.character(c(continuousIDs,binaryIDs))
 SUCRAvsSUCRAjags_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(continuous_rm[[i]]["no. treatments"])>5)
-                                                                    {averageoverlap(con_ranks[[i]][,"SUCRA_ranks"],con_ranks[[i]][,"SUCRAjags ranks"],floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
+                                                                    {averageoverlap(order(con_ranks[[i]][,"SUCRA_ranks"]),order(con_ranks[[i]][,"SUCRAjags ranks"]),floor(as.numeric(continuous_rm[[i]]["no. treatments"])/2))}
                                                                   else {NA}),
                         sapply(1:length(bin_ranks), function(i) if(as.numeric(binary_rm[[i]]["no. treatments"])>5)
-                                                                    {averageoverlap(bin_ranks[[i]][,"SUCRA_ranks"],bin_ranks[[i]][,"SUCRAjags ranks"],floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
+                                                                    {averageoverlap(order(bin_ranks[[i]][,"SUCRA_ranks"]),order(bin_ranks[[i]][,"SUCRAjags ranks"]),floor(as.numeric(binary_rm[[i]]["no. treatments"])/2))}
                                                                   else {NA}))
 names(SUCRAvsSUCRAjags_AO) <- as.character(c(continuousIDs,binaryIDs))
 SUCRAvsSUCRAjags_AO <- Filter(Negate(anyNA), SUCRAvsSUCRAjags_AO)   ## exclude any NAs
@@ -257,8 +262,6 @@ head(SUCRAvsSUCRAjags_AO)
 
 
 # export matrix results in table
-install.packages("xlsx")
-library(xlsx)
 write.xlsx(results, "agreement results.xlsx")
 
 
@@ -287,3 +290,7 @@ head(AvgTEprec_avg)
 
 ### graphs to show relationship between correlations and networks measures (avg sample size, avg precision)
 source("plots.R")
+
+# For Table1 for publication
+finalDB <- nmadb[nmadb$Record.ID %in% binaryIDs | nmadb$Record.ID %in% continuousIDs,]
+finalDB <- finalDB[,!grepl("Country..choice",colnames(finalDB))]
