@@ -292,5 +292,23 @@ head(AvgTEprec_avg)
 source("plots.R")
 
 # For Table1 for publication
+
+## NUMBER OF TREATMENTS IS INCORRECT IN DATABASE - MUST BE TAKEN FROM NETMETA RESULTS
 finalDB <- nmadb[nmadb$Record.ID %in% binaryIDs | nmadb$Record.ID %in% continuousIDs,]
 finalDB <- finalDB[,!grepl("Country..choice",colnames(finalDB))]
+
+finalRM <- c(continuous_rm, binary_rm)
+summary(as.numeric(sapply(1:length(finalRM), function(i) finalRM[[i]]["no. treatments"])))
+summary(as.numeric(sapply(1:length(finalRM), function(i) finalRM[[i]]["no. studies"])))
+summary(as.numeric(sapply(1:length(finalRM), function(i) finalRM[[i]]["sample size"])))
+
+table(finalDB[,"Year"])
+table(finalDB[,"Harmful.Beneficial.Outcome"])
+table(finalDB[, "Type.of.Outcome."])
+
+
+
+
+names(finalRM[sapply(1:length(finalRM), function(i) finalRM[[i]]["no. treatments"]>4 & finalRM[[i]]["no. treatments"]<8)])
+netgraph(runnetmeta(480612), plastic = F, thickness = "number.of.studies", multiarm=F, points = T, number.of.studies = T )
+funnel.netmeta(runnetmeta(480612), order = c(1,2,3,4,5), linreg = T)
