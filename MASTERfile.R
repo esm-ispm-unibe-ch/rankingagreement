@@ -2,12 +2,12 @@
 rm(list=ls())
 library(devtools)
 
-library(nmadata)
+library(nmadb)
 library(readxl)
 
-install_github("esm-ispm-unibe-ch/NMAJags")
 install_github("esm-ispm-unibe-ch/rankingagreement")
 library(rankingagreement)
+install_github("esm-ispm-unibe-ch/NMAJags")
 library(NMAJags)
 library(R2jags)
 library(netmeta)
@@ -20,7 +20,23 @@ library(xlsx)
 
 
 
-nmadb = getNMADB()
+loadOrRun = function (filename, runfunction){
+  if(file.exists(filename)){
+    out = readRDS(filename)
+  }else{
+    out = runfunction()
+  }
+  return(out)
+}
+
+nmadb=loadOrRun("nmadb.RData",
+                function () {
+                  ndb = getNMADB()
+                  saveRDS(file = "./nmadb.RData", object = ndb)
+                  return(ndb)}
+)
+
+#nmadb = getNMADB()
 
 # nmadb_used = nmadb[nmadb$Verified=="True" & nmadb$Format!="iv" & (nmadb$Type.of.Outcome.=="Binary" | nmadb$Type.of.Outcome.=="Continuous"),]
 
@@ -97,8 +113,7 @@ names(binary_rm) <- as.character(binaryIDs)
 head(binary_rm)
 
 dev.off()
-dev.off()
-dev.off()
+
 
 
 # create lists with only ranks for kendall correlation
@@ -140,9 +155,9 @@ head(spearman_bin)
 
 
 # prepare matrix to store results
-results <- matrix(nrow = 4, ncol = 3,
+results <- matrix(nrow = 4, ncol = 4,
                   dimnames = list(c("Spearman rho", "Kendall tau", "Yilmaz tauAP", "Average Overlap"),
-                                  c("pBV vs SUCRA", "SUCRA vs ATE", "pBV vs ATE")))
+                                  c("pBV vs SUCRA", "SUCRA vs ATE", "pBV vs ATE", "SUCRA vs SUCRAjags")))
 
 # save all pBV vs SUCRA in a vector separately for kendall, spearman and AP then store median and interquartile range
 pBVvsSUCRA_s <- c(sapply(1:length(con_ranks), function(i) spearman_con[[i]]["pBV ranks","SUCRA_ranks"]),
@@ -255,6 +270,11 @@ head(SUCRAvsSUCRAjags_s)
 head(SUCRAvsSUCRAjags_k)
 head(SUCRAvsSUCRAjags_AP)
 head(SUCRAvsSUCRAjags_AO)
+    results["Spearman rho","SUCRA vs SUCRAjags"] <- paste0(summary(SUCRAvsSUCRAjags_s, digits = 2)["Median"], " (", summary(SUCRAvsSUCRAjags_s, digits = 2)["1st Qu."], ", ", summary(SUCRAvsSUCRAjags_s, digits = 2)["3rd Qu."], ")")
+    results["Kendall tau","SUCRA vs SUCRAjags"]  <- paste0(summary(SUCRAvsSUCRAjags_k, digits = 2)["Median"], " (", summary(SUCRAvsSUCRAjags_k, digits = 2)["1st Qu."], ", ", summary(SUCRAvsSUCRAjags_k, digits = 2)["3rd Qu."], ")")
+    results["Yilmaz tauAP","SUCRA vs SUCRAjags"] <- paste0(summary(SUCRAvsSUCRAjags_AP, digits = 2)["Median"], " (", summary(SUCRAvsSUCRAjags_AP, digits = 2)["1st Qu."], ", ", summary(SUCRAvsSUCRAjags_AP, digits = 2)["3rd Qu."], ")")
+    results["Average Overlap","SUCRA vs SUCRAjags"] <-paste0(summary(SUCRAvsSUCRAjags_AO, digits = 2)["Median"], " (", summary(SUCRAvsSUCRAjags_AO, digits = 2)["1st Qu."], ", ", summary(SUCRAvsSUCRAjags_AO, digits = 2)["3rd Qu."], ")")
+
     SUCRAs_90 <- sum(SUCRAvsSUCRAjags_s>0.9)/length(SUCRAvsSUCRAjags_s) # % of networks with spearman correlation >0.9
     SUCRAk_90 <- sum(SUCRAvsSUCRAjags_k>0.9)/length(SUCRAvsSUCRAjags_k) # % of networks with kendall correlation >0.9
     SUCRAap_90 <-  sum(SUCRAvsSUCRAjags_AP>0.9)/length(SUCRAvsSUCRAjags_AP) # % of networks with Yilmaz AP correlation >0.9
@@ -302,13 +322,20 @@ summary(as.numeric(sapply(1:length(finalRM), function(i) finalRM[[i]]["no. treat
 summary(as.numeric(sapply(1:length(finalRM), function(i) finalRM[[i]]["no. studies"])))
 summary(as.numeric(sapply(1:length(finalRM), function(i) finalRM[[i]]["sample size"])))
 
-table(finalDB[,"Year"])
-table(finalDB[,"Harmful.Beneficial.Outcome"])
-table(finalDB[, "Type.of.Outcome."])
+table(finalDB$Harmful.Beneficial.Outcome)
+table(droplevels(finalDB$Type.of.Outcome.))
+table(droplevels(finalDB$Year))
+table(droplevels(finalDB$Journal.Name))
+table(finalDB$Ranking.metric..choice.Probability.of.being.the.best.)
+table(finalDB$Ranking.metric..choice.Rankograms.)
+table(finalDB$Ranking.metric..choice.Median.rank.)
+table(finalDB$Ranking.metric..choice.Mean.rank.)
+table(finalDB$Ranking.metric..choice.SUCRA.)
+table(finalDB$Ranking.metric..choice.P.score.)
+table(finalDB$Ranking.metric..choice.Other.)
+table(finalDB$Ranking.metric..choice.None.)
 
 
 
-
-names(finalRM[sapply(1:length(finalRM), function(i) finalRM[[i]]["no. treatments"]>4 & finalRM[[i]]["no. treatments"]<8)])
-netgraph(runnetmeta(480612), plastic = F, thickness = "number.of.studies", multiarm=F, points = T, number.of.studies = T )
-funnel.netmeta(runnetmeta(480612), order = c(1,2,3,4,5), linreg = T)
+# names(finalRM[sapply(1:length(finalRM), function(i) finalRM[[i]]["no. treatments"]>4 & finalRM[[i]]["no. treatments"]<8)])
+# netgraph(runnetmeta(501435), plastic = F, thickness = "number.of.studies", multiarm=F, points = T, number.of.studies = T )
