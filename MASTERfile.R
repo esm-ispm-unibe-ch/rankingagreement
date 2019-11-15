@@ -47,6 +47,8 @@ nmadb=loadOrRun("nmadb.RData",
 binaryIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Binary" & nmadb$Format!="iv",]$Record.ID
 continuousIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Continuous" & nmadb$Format!="iv",]$Record.ID
 
+
+
 # the following functions get the netmetas and the datas for all the networks with continuous outcomes
 getContinuousNMAs = function() {
   out = lapply(continuousIDs,
@@ -100,7 +102,10 @@ getContinuous = function () {
                               jagsranks = nmajagsranks_con(netd$data)
                             }
                             return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
-                                        "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages[order(rownames(altnma$averages))]$TE, "Avg TE ranks"=altnma$averages[order(rownames(altnma$averages))]$TE_ranks, "Avg Pscore"=altnma$averages[order(rownames(altnma$averages))]$Pscoreaverage),
+                                        "ranking metrics"=cbind(nmaranks[order(as.numeric(rownames(nmaranks))),],
+                                                                jagsranks, "Avg TE"=altnma$averages[order(as.numeric(rownames(altnma$averages))),]$TE,
+                                                                "Avg TE ranks"=altnma$averages[order(as.numeric(rownames(altnma$averages))),]$TE_ranks,
+                                                                "Avg Pscore"=altnma$averages[order(as.numeric(rownames(altnma$averages))),]$Pscoreaverage),
                                         "Avg TE prec range"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
                                         "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
                           },  error=function(cond){
@@ -148,7 +153,7 @@ binaryNetObjects = loadOrRun("binaryNetObjects.RData",
                                    return(nmas)}
 )
 
-getBinarysDatasets = function() {
+getBinaryDatasets = function() {
   out = lapply(binaryIDs,
                function(rid)
                  return(readByID(rid))
@@ -184,10 +189,12 @@ getBinary = function () {
                          jagsranks = nmajagsranks_bin(netd$data)
                        }
                        return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
-                                   "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages[order(rownames(altnma$averages))]$TE, "Avg TE ranks"=altnma$averages[order(rownames(altnma$averages))]$TE_ranks, "Avg Pscore"=altnma$averages[order(rownames(altnma$averages))]$Pscoreaverage),
+                                   "ranking metrics"=cbind(nmaranks[order(as.numeric(rownames(nmaranks))),],
+                                                           jagsranks, "Avg TE"=altnma$averages[order(as.numeric(rownames(altnma$averages))),]$TE,
+                                                           "Avg TE ranks"=altnma$averages[order(as.numeric(rownames(altnma$averages))),]$TE_ranks,
+                                                           "Avg Pscore"=altnma$averages[order(as.numeric(rownames(altnma$averages))),]$Pscoreaverage),
                                    "Avg TE prec range"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
-                                   "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
-                     },   error=function(cond){
+                                   "Avg TE prec avg"=mean(altnma$averages$seTE^2)))                     },   error=function(cond){
                        message(cond)
                        return(list(recid=rid,error=cond))
                      }
@@ -248,8 +255,8 @@ head(spearman_bin)
                              sapply(1:length(bin_ranks), function(i) spearman_bin[[i]]["Pscore_ranks","SUCRA_ranks"]))
         names(pSCOREvsSUCRA_s) <- as.character(c(continuousIDs,binaryIDs))
         res_pSCOREvsSUCRA_s <- paste0(summary(pSCOREvsSUCRA_s, digits = 3)["Median"], " (", summary(pSCOREvsSUCRA_s, digits = 3)["1st Qu."], ", ", summary(pSCOREvsSUCRA_s, digits = 3)["3rd Qu."], ")")
-        sum(pSCOREvsSUCRA_s<0.99)/length(res_pSCOREvsSUCRA_s) # % of networks with spearman correlation >0.9
-        print(pSCOREvsSUCRA_s[pSCOREvsSUCRA_s<1])
+        sum(pSCOREvsSUCRA_s>0.99)/length(pSCOREvsSUCRA_s) # % of networks with spearman correlation >0.99
+        print(pSCOREvsSUCRA_s[pSCOREvsSUCRA_s<0.99999])
 
 
 # prepare matrix to store results
