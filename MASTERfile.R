@@ -29,6 +29,8 @@ loadOrRun = function (filename, runfunction){
   return(out)
 }
 
+
+# access database or locally saved file
 nmadb=loadOrRun("nmadb.RData",
                 function () {
                   ndb = getNMADB()
@@ -45,14 +47,48 @@ nmadb=loadOrRun("nmadb.RData",
 binaryIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Binary" & nmadb$Format!="iv",]$Record.ID
 continuousIDs = nmadb[nmadb$Verified=="True" & nmadb$Type.of.Outcome.=="Continuous" & nmadb$Format!="iv",]$Record.ID
 
-pdf("traceplots_cont.pdf")
+# the following functions get the netmetas and the datas for all the networks with continuous outcomes
+getContinuousNMAs = function() {
+  out = lapply(continuousIDs,
+        function(rid)
+          return(list(rid=rid,netobj=runnetmeta(rid)))
+          )
+  return(out)
+}
+
+continuousNetObjects = loadOrRun("continuousNetObjects.RData",
+          function () {
+            nmas = getContinuousNMAs()
+            saveRDS(file = "./continuousNetObjects.RData", object = nmas)
+            return(nmas)}
+)
+
+getContinuousDatasets = function() {
+  out = lapply(continuousIDs,
+               function(rid)
+                 return(readByID(rid))
+  )
+  return(out)
+}
+
+continuousDatasets = loadOrRun("continuousDatasets.RData",
+                                 function () {
+                                   datas = getContinuousDatasets()
+                                   saveRDS(file = "./continuousDatasets.RData", object = datas)
+                                   return(datas)}
+)
+
+
 
 # calculate ranking metrics for continuous outcome networks
-continuous_rm = lapply(continuousIDs,
-                         function(rid) {
+
+getContinuous = function () {
+          out = lapply( 1:length(continuousNetObjects),
+                         function(i) {
                           tryCatch({
-                            nma = runnetmeta(rid)
-                            netd = readByID(rid)
+                            nma = continuousNetObjects[[i]]$netobj
+                            rid = continuousNetObjects[[i]]$rid
+                            netd = continuousDatasets[[i]]
                             if (nmadb[nmadb$Record.ID==rid,]$Harmful.Beneficial.Outcome=="Beneficial"){
                               nmaranks = netmetaranks_B(nma,1000)
                               altnma = alternativenma(nma, small.values = "bad")
@@ -64,7 +100,7 @@ continuous_rm = lapply(continuousIDs,
                               jagsranks = nmajagsranks_con(netd$data)
                             }
                             return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
-                                        "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
+                                        "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages[order(rownames(altnma$averages))]$TE, "Avg TE ranks"=altnma$averages[order(rownames(altnma$averages))]$TE_ranks, "Avg Pscore"=altnma$averages[order(rownames(altnma$averages))]$Pscoreaverage),
                                         "Avg TE prec range"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
                                         "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
                           },  error=function(cond){
@@ -74,20 +110,69 @@ continuous_rm = lapply(continuousIDs,
                           )
                         }
                         )
+ return(out)
+}
 
-names(continuous_rm) <- as.character(continuousIDs)
-head(continuous_rm)
+# continuous_rm = loadOrRun("continuousRM.RData",
+#                   function () {
+#                     conts = getContinuous()
+#                     saveRDS(file = "./continuousRM.RData", object = conts)
+#                     return(conts)}
+# )
+
+pdf("traceplots_cont.pdf")
+continuous_rm =  getContinuous()
 
 dev.off()
 
 
-pdf("traceplots_bin.pdf")
+names(continuous_rm) <- as.character(continuousIDs)
+head(continuous_rm)
+
+
+
+
+# the following functions get the netmetas and the datas for all the networks with continuous outcomes
+getBinaryNMAs = function() {
+  out = lapply(binaryIDs,
+               function(rid)
+                 return(list(rid=rid,netobj=runnetmeta(rid)))
+  )
+  return(out)
+}
+
+binaryNetObjects = loadOrRun("binaryNetObjects.RData",
+                                 function () {
+                                   nmas = getBinaryNMAs()
+                                   saveRDS(file = "./binaryNetObjects.RData", object = nmas)
+                                   return(nmas)}
+)
+
+getBinarysDatasets = function() {
+  out = lapply(binaryIDs,
+               function(rid)
+                 return(readByID(rid))
+  )
+  return(out)
+}
+
+binaryDatasets = loadOrRun("binaryDatasets.RData",
+                               function () {
+                                 datas = getBinaryDatasets()
+                                 saveRDS(file = "./binaryDatasets.RData", object = datas)
+                                 return(datas)}
+)
+
+
+
 # calculate ranking metrics for binary outcome networks
-binary_rm = lapply(binaryIDs,
+getBinary = function () {
+  out  = lapply( 1:length(binaryNetObjects),
                    function(rid) {
                      tryCatch({
-                       nma = runnetmeta(rid)
-                       netd = readByID(rid)
+                       nma = binaryNetObjects[[i]]$netobj
+                       rid = binaryNetObjects[[i]]$rid
+                       netd = binaryDatasets[[i]]
                        if (nmadb[nmadb$Record.ID==rid,]$Harmful.Beneficial.Outcome=="Beneficial"){
                          nmaranks = netmetaranks_B(nma,1000)
                          altnma = alternativenma(nma, small.values = "bad")
@@ -99,7 +184,7 @@ binary_rm = lapply(binaryIDs,
                          jagsranks = nmajagsranks_bin(netd$data)
                        }
                        return(list("no. treatments"=nma$n, "no. studies"=nma$k,"sample size"=sum(netd$data$n),
-                                   "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages$TE, "Avg TE ranks"=altnma$averages$TE_ranks, "Avg Pscore"=altnma$averages$Pscoreaverage),
+                                   "ranking metrics"=cbind(nmaranks,jagsranks, "Avg TE"=altnma$averages[order(rownames(altnma$averages))]$TE, "Avg TE ranks"=altnma$averages[order(rownames(altnma$averages))]$TE_ranks, "Avg Pscore"=altnma$averages[order(rownames(altnma$averages))]$Pscoreaverage),
                                    "Avg TE prec range"=(max(altnma$averages$seTE^2)-min(altnma$averages$seTE^2))/max(altnma$averages$seTE^2),
                                    "Avg TE prec avg"=mean(altnma$averages$seTE^2)))
                      },   error=function(cond){
@@ -108,11 +193,24 @@ binary_rm = lapply(binaryIDs,
                      }
                      )
                    }
-)
+          )
+}
+
+# binary_rm = loadOrRun("binaryRM.RData",
+#                   function () {
+#                     bin = getBinary()
+#                     saveRDS(file = "./binaryRM.RData", object = bin)
+#                     return(bin)}
+# )
+
+pdf("traceplots_bin.pdf")
+binary_rm =  getBinary()
+
+dev.off()
+
 names(binary_rm) <- as.character(binaryIDs)
 head(binary_rm)
 
-dev.off()
 
 
 
