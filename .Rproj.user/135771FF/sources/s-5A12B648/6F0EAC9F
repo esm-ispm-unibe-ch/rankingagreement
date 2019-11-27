@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574859293073.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "6F0EAC9F",
+    "lastKnownWriteTime" : 1574858937,
+    "last_content_update" : 1574858937,
+    "path" : "~/Virginia/PhD project/rankingagreement/R/netmetaranks_H.R",
+    "project_path" : "R/netmetaranks_H.R",
+    "properties" : {
+        "cursorPosition" : "100,0",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
