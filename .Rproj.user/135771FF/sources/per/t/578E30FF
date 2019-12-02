@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574861574608.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2603431444",
+    "id" : "578E30FF",
+    "lastKnownWriteTime" : 1574869544,
+    "last_content_update" : 1574869544578,
+    "path" : "~/Virginia/PhD project/Project Presentation & documents/example extreme precision values/network extreme SE.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "62,0",
+        "scrollLine" : "40"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

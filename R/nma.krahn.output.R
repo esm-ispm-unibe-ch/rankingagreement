@@ -1,23 +1,25 @@
+# function slightly modified from original code to differentiate between results from multiarm and non-multiarm (see return part of function)
+
 nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
-  
-  
+
+
   meta:::chkclass(x, "netmeta")
-  
-  
+
+
   if (is.null(sep.trts))
     sep.trts <- ":"
-  
-  
+
+
   n <- x$n
-  
-  
+
+
   if (x$reference.group == "")
     trts <- colnames(x$A.matrix)
   else
     trts <- c(x$reference.group,
               colnames(x$A.matrix)[colnames(x$A.matrix) != x$reference.group])
-  
-  
+
+
   studies.pre <- data.frame(studlab = x$studlab,
                             treat1 = x$treat1, treat2 = x$treat2,
                             TE = -x$TE, seTE = sqrt(x$seTE^2 + tau.preset^2),
@@ -25,13 +27,13 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
                             stringsAsFactors = FALSE)
   ##
   studies <- studies.pre <- studies.pre[order(studies.pre$studlab), ]
-  
-  
+
+
   twoarm   <- any(studies$narms == 2)
   multiarm <- any(studies$narms > 2)
   selmulti <- studies$narms > 2
-  
-  
+
+
   sel <- studies.pre$treat2 == x$reference.group
   ##
   studies$treat1[sel] <- studies.pre$treat2[sel]
@@ -39,13 +41,13 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
   studies$TE[sel] <- -studies.pre$TE[sel]
   studies <- data.frame(studies,
                         comparison = paste(studies$treat1, studies$treat2, sep = sep.trts))
-  
-  
+
+
   comparison.num.poss <- n * (n - 1) / 2
   comparisons <- levels(factor(as.character(studies$comparison)))
   comparison.num <- length(comparisons)
-  
-  
+
+
   trts.poss <- rep(NA, comparison.num.poss)
   k <- 1
   for (i in 1:(n - 1))
@@ -53,8 +55,8 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
       trts.poss[k] <- paste(trts[i], trts[j], sep = sep.trts)
       k <- k + 1
     }
-  
-  
+
+
   direct <- matrix(NA, nrow = comparison.num, ncol = 6)
   ##
   colnames(direct) <- c("comparison", "TE", "seTE",
@@ -84,8 +86,8 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
       direct$n.2arm[j] <- m2$k
     }
   }
-  
-  
+
+
   if (multiarm) {
     multistudies <- split(studies[selmulti, ], as.character(studies$studlab[selmulti]))
     multistudies <- lapply(multistudies,
@@ -146,7 +148,7 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
                              )
     )
   }
-  
+
   studies <- data.frame(studies, design = studies$comparison)
   if (multiarm & sum(is.na(direct$seTE.2arm)) > 0)
     direct2 <- data.frame(direct[!is.na(direct$seTE.2arm), ])
@@ -154,15 +156,15 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
     direct2 <- direct
   ##
   direct2 <- data.frame(direct2)
-  
+
   if (length(unique(studies$design)) == 1)
     return(invisible(NULL))
-  
+
   V.design <- diag(direct2$seTE.2arm^2,
                    nrow = length(direct2$seTE.2arm),
                    ncol = length(direct2$seTE.2arm))
-  
-  
+
+
   if (multiarm) {
     sp <- split(multistudies2, multistudies2$studlab)
     armM <- unlist(lapply(split(multistudies2$narms, multistudies2$studlab),
@@ -229,10 +231,10 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
       ##
       TE.agg <- c(TE.agg, covs3 %*% apply(m, 1, sum))
     }
-    
+
     TE.agg <- TE.agg[-1]
     V3.agg <- V3.agg[-1, -1]
-    
+
     V <- adiag(V.design, V3.agg)
     ##
     nam <- rep(multicomp, unlist(lapply(split(multistudies, multistudies$design),
@@ -260,8 +262,8 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
   ##
   if (min(eigen(V, only.values = TRUE)$values)<0)
     stop("Covariance matrix is not non-negative definite.")
-  
-  
+
+
   fX <- function(n) {
     possK <- n * (n - 1) / 2
     X <- matrix(0, nrow = possK, ncol = n - 1)
@@ -286,8 +288,8 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
   colnames(X.full) <- trts.poss[1:n - 1]
   ##
   X.obs2.design <- X.full[direct2$comparison, , drop = FALSE]
-  
-  
+
+
   if (multiarm) {
     num.basics.design <- unlist(lapply(split(multistudies, multistudies$design),
                                        function(x)
@@ -310,8 +312,8 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
   ##
   H <- X.full %*% solve(t(X.obs) %*% solve(V) %*% X.obs) %*% t(X.obs) %*% solve(V)
   TE.net <- H %*% TE.dir
-  
-  
+
+
   covTE.net.base <- solve(t(X.obs) %*% solve(V) %*% X.obs)
   co <- NA
   for (i in 1:(n - 2)) {
@@ -326,8 +328,8 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
   }
   ##
   covTE.net <- c(diag(covTE.net.base), co[-1])
-  
-  
+
+
   comps <- as.character(studies$comparison[!selmulti])
   studlabs <- as.character(studies$studlab[!selmulti])
   ##
@@ -335,21 +337,21 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
     comps <- c(comps, as.character(multistudies$comparison))
     studlabs <- c(studlabs, as.character(multistudies$studlab))
   }
-  
-  
+
+
   X.obs.studies <- X.full[comps, ]
-  
-  
+
+
   H.studies <- X.full %*%
     solve(t(X.obs.studies) %*% solve(V.studies) %*% X.obs.studies) %*%
     t(X.obs.studies) %*% solve(V.studies)
   ##
   colnames(H.studies) <- studlabs
-  
-  
+
+
   network <- data.frame(TE = TE.net, seTE = sqrt(covTE.net))
-  
-  
+
+
   if (multiarm) {
     len.designs <- c(rep(1, length(direct2$comparison)),
                      unlist(lapply(strsplit(multicomp, sep.trts),
@@ -419,8 +421,8 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
   design <- data.frame(design,
                        TE.net = network[as.character(design$comparison), "TE"],
                        seTE.net = network[as.character(design$comparison), "seTE"])
-  
-  
+
+
   if (multiarm)
     studies <- rbind(studies[!selmulti, ], multistudies[, 1:8])
   ##
@@ -440,6 +442,7 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
   studies <- rbind(studies_lim[order(studies_lim$studlab), ],
                    studies_mult[do.call(order, studies_mult[, c("studlab","treat1","treat2")]), ])
 
+  # the following ha sbeen modified from the original code because it did not differentiate between multiarm and non-multiarm
   if (multiarm) {
       res <- list(n = n,
                   k = x$k,
@@ -483,9 +486,9 @@ nma.krahn.output <- function(x, tau.preset = 0, sep.trts = x$sep.trts) {
                 sep.trts = sep.trts,
                 multiarm=multiarm,
                 direct2=direct2,
-                TE.dir=TE.dir)    
+                TE.dir=TE.dir)
   }
   class(res) <- "nma.krahn"
-  
+
   res
 }

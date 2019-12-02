@@ -12,42 +12,42 @@ par(mfrow=c(2,4))
 
 plot(log(samp_nt), pBVvsSUCRA_k,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Kendall tau pBV vs SUCRA", ylim=c(-0.7,1))      # kendall correlation
+     ylab = "Kendall tau pBV vs SUCRA", ylim=c(0,1))      # kendall correlation
 lines(smooth.spline(log(samp_nt), pBVvsSUCRA_k, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), pBVvsSUCRA_s,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Spearman rho pBV vs SUCRA", ylim=c(-0.7,1))    # spearman correlation
+     ylab = "Spearman rho pBV vs SUCRA", ylim=c(0,1))    # spearman correlation
 lines(smooth.spline(log(samp_nt), pBVvsSUCRA_s, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), SUCRAvsSUCRAjags_k,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Kendall tau SUCRA vs Bayesian SUCRA", ylim=c(-0.7,1))  # kendall correlation
+     ylab = "Kendall tau SUCRA vs Bayesian SUCRA", ylim=c(0,1))  # kendall correlation
 lines(smooth.spline(log(samp_nt), SUCRAvsSUCRAjags_k, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), SUCRAvsSUCRAjags_s,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Spearman rho SUCRA vs Bayesian SUCRA", ylim=c(-0.7,1))   # spearman correlation
+     ylab = "Spearman rho SUCRA vs Bayesian SUCRA", ylim=c(0,1))   # spearman correlation
 lines(smooth.spline(log(samp_nt), SUCRAvsSUCRAjags_s, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), SUCRAvsAvgTE_k,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Kendall tau SUCRA vs average treatment effect", ylim=c(-0.7,1))   # kendall correlation
+     ylab = "Kendall tau SUCRA vs average treatment effect", ylim=c(0,1))   # kendall correlation
 lines(smooth.spline(log(samp_nt), SUCRAvsAvgTE_k, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), SUCRAvsAvgTE_s,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Spearman rho SUCRA vs average treatment effect", ylim=c(-0.7,1))   # spearman correlation
+     ylab = "Spearman rho SUCRA vs average treatment effect", ylim=c(0,1))   # spearman correlation
 lines(smooth.spline(log(samp_nt), SUCRAvsAvgTE_s, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), pBVvsAvgTE_k,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Kendall tau pBV vs average treatment effect", ylim=c(-0.7,1))   # kendall correlation
+     ylab = "Kendall tau pBV vs average treatment effect", ylim=c(0,1))   # kendall correlation
 lines(smooth.spline(log(samp_nt), pBVvsAvgTE_k, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), pBVvsAvgTE_s,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Spearman rho pBV vs average treatment effect", ylim=c(-0.7,1))   # spearman correlation
+     ylab = "Spearman rho pBV vs average treatment effect", ylim=c(0,1))   # spearman correlation
 lines(smooth.spline(log(samp_nt), pBVvsAvgTE_s, df = 3),lwd=2,col="purple")
 
 dev.off()
@@ -63,42 +63,42 @@ par(mfrow=c(2,4))
 
 plot(log(samp_nt), pBVvsSUCRA_AP,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Yilmaz tauAP pBV vs SUCRA", ylim=c(-0.7,1))         # Yilmaz tauAP
+     ylab = "Yilmaz tauAP pBV vs SUCRA", ylim=c(0,1))         # Yilmaz tauAP
 lines(smooth.spline(log(samp_nt), pBVvsSUCRA_AP, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt[match(names(pBVvsSUCRA_AO), names(samp_nt))]), pBVvsSUCRA_AO,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Averge Overlap pBV vs SUCRA", ylim=c(-0.7,1))         # Averge Overlap
+     ylab = "Averge Overlap pBV vs SUCRA", ylim=c(0,1))         # Averge Overlap
 lines(smooth.spline(log(samp_nt[match(names(pBVvsSUCRA_AO), names(samp_nt))]), pBVvsSUCRA_AO, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), SUCRAvsSUCRAjags_AP,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Yilmaz tauAP SUCRA vs Bayesian SUCRA", ylim=c(-0.7,1))   # Yilmaz tauAP
+     ylab = "Yilmaz tauAP SUCRA vs Bayesian SUCRA", ylim=c(0,1))   # Yilmaz tauAP
 lines(smooth.spline(log(samp_nt), SUCRAvsSUCRAjags_AP, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt[match(names(SUCRAvsSUCRAjags_AO), names(samp_nt))]), SUCRAvsSUCRAjags_AO,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Averge Overlap SUCRA vs Bayesian SUCRA", ylim=c(-0.7,1))   # Averge Overlap
+     ylab = "Averge Overlap SUCRA vs Bayesian SUCRA", ylim=c(0,1))   # Averge Overlap
 lines(smooth.spline(log(samp_nt[match(names(SUCRAvsSUCRAjags_AO), names(samp_nt))]), SUCRAvsSUCRAjags_AO, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), SUCRAvsAvgTE_AP,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Yilmaz tauAP SUCRA vs average treatment effect", ylim=c(-0.7,1))   # Yilmaz tauAP
+     ylab = "Yilmaz tauAP SUCRA vs average treatment effect", ylim=c(0,1))   # Yilmaz tauAP
 lines(smooth.spline(log(samp_nt), SUCRAvsAvgTE_AP, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt[match(names(SUCRAvsAvgTE_AO), names(samp_nt))]), SUCRAvsAvgTE_AO,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Averge Overlap SUCRA vs average treatment effect", ylim=c(-0.7,1))   # Averge Overlap
+     ylab = "Averge Overlap SUCRA vs average treatment effect", ylim=c(0,1))   # Averge Overlap
 lines(smooth.spline(log(samp_nt[match(names(SUCRAvsAvgTE_AO), names(samp_nt))]), SUCRAvsAvgTE_AO, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt), pBVvsAvgTE_AP,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Yilmaz tauAP pBV vs average treatment effect", ylim=c(-0.7,1))   # Yilmaz tauAP
+     ylab = "Yilmaz tauAP pBV vs average treatment effect", ylim=c(0,1))   # Yilmaz tauAP
 lines(smooth.spline(log(samp_nt), pBVvsAvgTE_AP, df = 3),lwd=2,col="purple")
 
 plot(log(samp_nt[match(names(pBVvsAvgTE_AO), names(samp_nt))]), pBVvsAvgTE_AO,
      xlab = "log of average sample size \n per treatment",
-     ylab = "Averge Overlap pBV vs average treatment effect", ylim=c(-0.7,1))   # Averge Overlap
+     ylab = "Averge Overlap pBV vs average treatment effect", ylim=c(0,1))   # Averge Overlap
 lines(smooth.spline(log(samp_nt[match(names(pBVvsAvgTE_AO), names(samp_nt))]), pBVvsAvgTE_AO, df = 3),lwd=2,col="purple")
 
 dev.off()

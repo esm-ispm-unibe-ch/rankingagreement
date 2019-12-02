@@ -447,3 +447,25 @@ table(finalDB$Ranking.metric..choice.None.)
 
 # names(finalRM[sapply(1:length(finalRM), function(i) finalRM[[i]]["no. treatments"]>4 & finalRM[[i]]["no. treatments"]<8)])
 # netgraph(runnetmeta(501435), plastic = F, thickness = "number.of.studies", multiarm=F, points = T, number.of.studies = T )
+
+
+# check agreement between the two SUCRA only for networks with original measures OR or SMD
+sum(SUCRAvsSUCRAjags_s[match(finalDB[finalDB$Effect.Measure=="odds ratio" |
+                                    finalDB$Effect.Measure=="standardized mean difference","Record.ID"],
+                             names(SUCRAvsSUCRAjags_s))]>0.9)/length(SUCRAvsSUCRAjags_s[match(finalDB[finalDB$Effect.Measure=="odds ratio" |
+                                                                                            finalDB$Effect.Measure=="standardized mean difference","Record.ID"],
+                                                                                            names(SUCRAvsSUCRAjags_s))])
+
+sum(SUCRAvsSUCRAjags_k[match(finalDB[finalDB$Effect.Measure=="odds ratio" |
+                                         finalDB$Effect.Measure=="standardized mean difference","Record.ID"],
+                             names(SUCRAvsSUCRAjags_k))]>0.9)/length(SUCRAvsSUCRAjags_k[match(finalDB[finalDB$Effect.Measure=="odds ratio" |
+                                                                                                          finalDB$Effect.Measure=="standardized mean difference","Record.ID"],
+                                                                                              names(SUCRAvsSUCRAjags_k))])
+
+
+sum(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA), match(finalDB[finalDB$Effect.Measure=="odds ratio" |
+                                              finalDB$Effect.Measure=="standardized mean difference","Record.ID"],
+                                              names(SUCRAvsSUCRAjags_AO)))]>0.9)/length(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA), match(finalDB[finalDB$Effect.Measure=="odds ratio" |
+                                                                                                                                  finalDB$Effect.Measure=="standardized mean difference","Record.ID"],
+                                                                                                                                  names(SUCRAvsSUCRAjags_AO)))])
+

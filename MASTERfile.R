@@ -64,6 +64,7 @@ continuousNetObjects = loadOrRun("continuousNetObjects.RData",
             saveRDS(file = "./continuousNetObjects.RData", object = nmas)
             return(nmas)}
 )
+names(continuousNetObjects) <- continuousIDs
 
 getContinuousDatasets = function() {
   out = lapply(continuousIDs,
@@ -79,7 +80,7 @@ continuousDatasets = loadOrRun("continuousDatasets.RData",
                                    saveRDS(file = "./continuousDatasets.RData", object = datas)
                                    return(datas)}
 )
-
+names(continuousDatasets) <- continuousIDs
 
 
 # calculate ranking metrics for continuous outcome networks
@@ -154,6 +155,7 @@ binaryNetObjects = loadOrRun("binaryNetObjects.RData",
                                    saveRDS(file = "./binaryNetObjects.RData", object = nmas)
                                    return(nmas)}
 )
+names(binaryNetObjects) <- binaryIDs
 
 getBinaryDatasets = function() {
   out = lapply(binaryIDs,
@@ -169,7 +171,7 @@ binaryDatasets = loadOrRun("binaryDatasets.RData",
                                  saveRDS(file = "./binaryDatasets.RData", object = datas)
                                  return(datas)}
 )
-
+names(binaryDatasets) <- binaryIDs
 
 
 # calculate ranking metrics for binary outcome networks
@@ -447,3 +449,33 @@ table(finalDB$Ranking.metric..choice.None.)
 
 # names(finalRM[sapply(1:length(finalRM), function(i) finalRM[[i]]["no. treatments"]>4 & finalRM[[i]]["no. treatments"]<8)])
 # netgraph(runnetmeta(501435), plastic = F, thickness = "number.of.studies", multiarm=F, points = T, number.of.studies = T )
+
+
+# check agreement between the two SUCRA only for networks with original measures OR or SMD
+summary(SUCRAvsSUCRAjags_s[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_s))])
+summary(SUCRAvsSUCRAjags_k[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_k))])
+summary(SUCRAvsSUCRAjags_AP[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_AP))])
+summary(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
+                                                        nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_AO)))])
+
+
+
+sum(SUCRAvsSUCRAjags_s[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
+                                    nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
+                             names(SUCRAvsSUCRAjags_s)))]>0.9)/length(SUCRAvsSUCRAjags_s[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
+                                                                                            nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
+                                                                                            names(SUCRAvsSUCRAjags_s)))])
+
+sum(SUCRAvsSUCRAjags_k[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
+                                         nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
+                             names(SUCRAvsSUCRAjags_k)))]>0.9)/length(SUCRAvsSUCRAjags_k[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
+                                                                                                          nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
+                                                                                              names(SUCRAvsSUCRAjags_k)))])
+
+
+sum(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
+                                              nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
+                                              names(SUCRAvsSUCRAjags_AO)))]>0.9)/length(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
+                                                                                                                                  nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
+                                                                                                                                  names(SUCRAvsSUCRAjags_AO)))])
+

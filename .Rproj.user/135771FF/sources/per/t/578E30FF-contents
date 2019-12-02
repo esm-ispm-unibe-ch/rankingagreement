@@ -1,0 +1,81 @@
+ext_prec_range <- AvgTEprec_range[log(log(1/as.numeric(AvgTEprec_range)))<=-4]
+
+ext_prec_range_NMA <- lapply(names(ext_prec_range), function(id) {
+pdf(file = paste('~/Virginia/PhD project/Project Presentation & documents/example extreme precision values/plots', id, 'extreme prec range.pdf'))
+    nma = runnetmeta(id)
+    netplot = netgraph(nma, plastic=F, thickness="number.of.studies", multiarm = F, points=T, col=1)
+    return(list(id, summary(nma)))
+dev.off()
+}
+)
+graphics.off()
+
+
+
+
+ext_prec_avg <- AvgTEprec_avg[log(as.numeric(AvgTEprec_avg))>3]
+
+ext_prec_avg_NMA <- lapply(names(ext_prec_avg), function(id) {
+  pdf(file = paste('~/Virginia/PhD project/Project Presentation & documents/example extreme precision values/plots', id, 'extreme prec avg.pdf'))
+  nma = runnetmeta(id)
+  netplot = netgraph(nma, plastic=F, thickness="number.of.studies", multiarm = F, points=T, col=1)
+  return(list(id, summary(nma)))
+  dev.off()
+}
+)
+graphics.off()
+
+
+  ### choose network 501267
+AvgTEprec_range["501267"]
+log(log(1/as.numeric(AvgTEprec_range["501267"])))
+
+
+
+
+install.packages("xlsx")
+library(xlsx)
+
+
+
+data501267 <- readByID(501267)
+trts501267 <- data.frame(data501267$data$`All cause mortality`,data501267$data$...12)[!is.na(data501267$data$...12),]
+nma501267 <- runnetmeta(501267)
+netgraph.netmeta(nma501267,labels = trts501267[,2], plastic=F,
+                 thickness="se.random", multiarm = F,
+                 points=T, cex.points = 2.5, col=1)
+forest(nma501267, ref = "1", sortvar = "-Pscore", labels = trts501267[,2])
+
+
+# check forest plot of alternativenma
+alt501267 <- alternativenma(nma501267)
+install_github("esm-ispm-unibe-ch/alternativenma")
+library(alternativenma)
+plot.alternativenma(alt501267, xmin = -0.5, xmax = 5, treatmentplacement = -0.1, effectplacement = 4)
+
+
+
+rm_501267 <- cbind(netmetaranks_H(nma501267,10000), "Avg TE"=alternativenma(nma501267)$averages[order(rownames(alternativenma(nma501267)$averages)),]$TE, "Avg TE ranks"=alternativenma(nma501267)$averages[order(rownames(alternativenma(nma501267)$averages)),]$TE_ranks, nmajagsranks_bin(readByID(501267)$data))
+ranks_501267 <- rm_501267[,c("pBV ranks", "SUCRA_ranks", "Avg TE ranks")]
+rownames(ranks_501267) <- trts501267[,2]
+write.xlsx(ranks_501267, 'C:/Users/vc18e501/Documents/Virginia/PhD project/Project Presentation & documents/example extreme precision values/ranks_501267.xlsx')
+
+
+
+kendall_501267 <- cor(ranks_501267, method="kendall")
+spearman_501267 <- cor(ranks_501267, method="spearman")
+
+AP_pBV_SUCRA <- tauAP_b(ranks_501267[,"pBV ranks"],ranks_501267[,"SUCRA_ranks"],decreasing = F)
+AP_pBV_ATE <- tauAP_b(ranks_501267[,"pBV ranks"],ranks_501267[,"Avg TE ranks"],decreasing = F)
+AP_SUCRA_ATE <- tauAP_b(ranks_501267[,"SUCRA_ranks"],ranks_501267[,"Avg TE ranks"],decreasing=F)
+
+AO_pBV_SUCRA <- averageoverlap(order(ranks_501267[,"pBV ranks"]),order(ranks_501267[,"SUCRA_ranks"]),4)
+AO_pBV_ATE <- averageoverlap(order(ranks_501267[,"pBV ranks"]),order(ranks_501267[,"Avg TE ranks"]),4)
+AO_SUCRA_ATE <- averageoverlap(order(ranks_501267[,"SUCRA_ranks"]),order(ranks_501267[,"Avg TE ranks"]),4)
+
+agreement_501267 <- matrix(data = round(c(spearman_501267[lower.tri(spearman_501267)], kendall_501267[lower.tri(kendall_501267)],
+                                    AP_pBV_SUCRA, AP_pBV_ATE, AP_SUCRA_ATE, AO_pBV_SUCRA, AO_pBV_ATE, AO_SUCRA_ATE), digits = 2),
+                           nrow = 4, ncol = 3, byrow = T,
+                           dimnames = list(c("Spearman rho", "Kendall tau", "Yilmaz tauAP", "Average Overlap"),
+                                           c("pBV vs SUCRA", "pBV vs ATE", "SUCRA vs ATE")))
+write.xlsx(agreement_501267, 'C:/Users/vc18e501/Documents/Virginia/PhD project/Project Presentation & documents/example extreme precision values/agreement_501267.xlsx')
