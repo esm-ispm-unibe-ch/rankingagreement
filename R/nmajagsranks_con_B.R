@@ -23,5 +23,5 @@ nmajagsranks_con_B <- function(netdata) {
 
   SUCRAjags_ranks <- (NMAdataContinuous$nt+1) - rank(NMAinJAGS$BUGSoutput$mean$SUCRA)
   SUCRAjags <- NMAinJAGS$BUGSoutput$mean$SUCRA
-  return(cbind("SUCRA jags"= SUCRAjags, "SUCRAjags ranks" = SUCRAjags_ranks))
+  return(round(cbind("SUCRA jags"= SUCRAjags, "SUCRAjags ranks" = SUCRAjags_ranks), digits = 3))
 }

@@ -31,7 +31,7 @@ nmajagsranks_bin <- function(netdata) {
 
                         SUCRAjags_ranks <- (NMAdataBinary$nt+1) - rank(NMAinJAGS$BUGSoutput$mean$SUCRA)
                         SUCRAjags <- NMAinJAGS$BUGSoutput$mean$SUCRA
-                        return(cbind("SUCRA jags"= SUCRAjags, "SUCRAjags ranks" = SUCRAjags_ranks))
+                        return(round(cbind("SUCRA jags"= SUCRAjags, "SUCRAjags ranks" = SUCRAjags_ranks), digits = 3))
 }
                         # start_time <- Sys.time()
                         # end_time <- Sys.time()

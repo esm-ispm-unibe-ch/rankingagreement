@@ -63,7 +63,7 @@ netmetaranks_B <- function(nma, nsim) {
       SUCRA <- vector(, length = nrow(p.rank))
       names(SUCRA) <- rownames(p.rank)
       for (i in 1:nrow(p.rank.cum)) {
-        SUCRA[i] <- round(sum(p.rank.cum[i,-length(p.rank.cum[i,])])/(nrow(p.rank.cum)-1), digits = 5)
+        SUCRA[i] <- round(sum(p.rank.cum[i,-length(p.rank.cum[i,])])/(nrow(p.rank.cum)-1), digits = 3)
       }
       #create vector of rankings based on SUCRA
       SUCRA_ranks=(nrow(p.rank) + 1) - rank(SUCRA)
