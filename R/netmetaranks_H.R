@@ -93,8 +93,8 @@ netmetaranks_H <- function(nma, nsim) {
   }
 
   ## view all ranking metrics together
-  return(cbind("pBV"=p.rank_1st, "pBV ranks"=p1st_rankings, SUCRA, SUCRA_ranks, "P-score"=netrank(nma)$Pscore.random, Pscore_ranks,
-               "Mean rank"=mean.rank, "Median rank"=med.rank, "TE"=rte[,1], "TE ranks"=rank(rte[,1])))
+  return(round(cbind("pBV"=p.rank_1st, "pBV ranks"=p1st_rankings, SUCRA, SUCRA_ranks, "P-score"=netrank(nma)$Pscore.random, Pscore_ranks,
+               "Mean rank"=mean.rank, "Median rank"=med.rank, "TE"=rte[,1], "TE ranks"=rank(rte[,1])), digits = 3))
 
 
 }

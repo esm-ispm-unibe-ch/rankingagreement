@@ -58,13 +58,13 @@ alternativenma <- function(netmetaobject,random=T,small.values="good"){
 
   #calculation of probabilities of being better than the average
   Pscoreaverage=rep(0,a$n)
-  if (small.values=="good") {Pscoreaverage=round(pnorm(TE/seTE), digits = 3)         #change from original altnma script: swapped with one from "if" below to match Pscore equation in paper
+  if (small.values=="good") {Pscoreaverage=pnorm(TE/seTE)        #change from original altnma script: swapped with one from "if" below to match Pscore equation in paper
                              TE_ranks=(a$n+1) - rank(TE)}
-  if (small.values=="bad") {Pscoreaverage=round(1-pnorm(TE/seTE), digits = 3)
+  if (small.values=="bad") {Pscoreaverage=1-pnorm(TE/seTE)
                             TE_ranks=rank(TE)}
 
   #summary of results
-  averages=data.frame(TE = TE, seTE = seTE, lower=lower, upper=upper, TE_ranks, Pscoreaverage=Pscoreaverage)
+  averages=round(data.frame(TE = TE, seTE = seTE, lower=lower, upper=upper, TE_ranks, Pscoreaverage=Pscoreaverage), digits = 3)
   rownames(averages)=labels
 
   res <- list(n = a$n,
