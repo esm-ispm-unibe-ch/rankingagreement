@@ -51,8 +51,8 @@ alternativenma <- function(netmetaobject,random=T,small.values="good"){
   labels=c(labels1,labels2)
 
   z1=qnorm(1-0.05/2, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)
-  TE = c(avs,-sum(avs))
-  seTE = c(sqrt(diag(covTE.net.base.alt)),sqrt(refavvar))
+  TE = round(c(avs,-sum(avs)), digits = 3)
+  seTE = round(c(sqrt(diag(covTE.net.base.alt)),sqrt(refavvar)), digits = 3)
   lower= TE - z1*seTE
   upper= TE + z1*seTE
 
@@ -64,7 +64,7 @@ alternativenma <- function(netmetaobject,random=T,small.values="good"){
                             TE_ranks=rank(TE)}
 
   #summary of results
-  averages=round(data.frame(TE = TE, seTE = seTE, lower=lower, upper=upper, TE_ranks, Pscoreaverage=Pscoreaverage), digits = 3)
+  averages=data.frame(TE = TE, seTE = seTE, lower=lower, upper=upper, TE_ranks, Pscoreaverage=Pscoreaverage)
   rownames(averages)=labels
 
   res <- list(n = a$n,

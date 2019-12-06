@@ -2,7 +2,7 @@ SUCRAvsSUCRAjags_s[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds
                                                      nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
                                               names(SUCRAvsSUCRAjags_s)))][SUCRAvsSUCRAjags_s[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
                                                     nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_s)))]<0.9]
-# only 2 with correlation between 0.5 and 0.6, 479770 is binary, 501307 continuous
+# only 2 with correlation between 0.4 and 0.6, 479770 is binary, 501307 continuous
 
 data479770 <- binaryDatasets[["479770"]]$data
 NMAdata479770 <- make.jagsNMA.data(studyid=id, t=t, r=r, n=n,
