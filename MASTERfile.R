@@ -226,7 +226,7 @@ head(binary_rm)
 
 
 
-# create lists with only ranks for kendall correlation
+# create lists with only ranks
 con_ranks <- lapply(1:length(continuous_rm), function(i) continuous_rm[[i]][["ranking metrics"]][,grepl("rank",colnames(continuous_rm[[i]][["ranking metrics"]]))])
 names(con_ranks) <- as.character(continuousIDs)
 head(con_ranks)

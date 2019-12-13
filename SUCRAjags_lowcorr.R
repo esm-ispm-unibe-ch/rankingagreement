@@ -24,30 +24,37 @@ NMAjags479770 <- jags.parallel(data = NMAdata479770, inits = NULL,
 #                                model.file = modelNMAContinuous)
 #
 
+# transform jags output in mcmc list for plotting it
+NMA479770mcmc <- as.mcmc(NMAjags479770)
+plot(NMA479770mcmc, trace = F, ask = T)
+
+
 # plot normal distributions from netmeta (frequentist model)
 nma479770 <- binaryNetObjects[["479770"]]$netobj
 mean <- t(nma479770$TE.random)[upper.tri(nma479770$TE.random)] ## save relative treatment effects in a vector
 sd <- t(nma479770$seTE.random)[upper.tri(nma479770$seTE.random)] ## save std err in a vector
 
-pdf("normal dist_netmeta.pdf")
-lapply(1:10, function(i) {
-  x <- seq(-4,4,length=100)*sd[i] + mean[i]
-  y <- dnorm(x, mean[i], sd[i])
-  plot(x, y, type = "l")
-})
-dev.off()
-
 x <- lapply(1:10, function(i) {
       seq(-4,4,length=100)*sd[i] + mean[i]
 })
+names(x) <- paste("z", colnames(NMA479770mcmc[[1]]))
+
 y <- lapply(1:10, function(i) {
       dnorm(x[[i]], mean[i], sd[i])
 })
+names(y) <- paste("pr", colnames(NMA479770mcmc[[1]]))
 
 
+xy <- data.frame(x,y)
 
-NMA479770mcmc <- as.mcmc(NMAjags479770)
 
-plot(NMA479770mcmc, trace = F, ask = F)
-par(mfrow=c(3,2))
-plot(x, y, type = "l", add=T)
+pdf("~/Virginia/PhD project/Papers/Empirical evaluation ranking/SUCRAasymmetricDist.pdf")
+NMA479770mcmcDF <- as.data.frame(NMA479770mcmc[[1]])
+par(mfrow=c(5,2),
+    oma = c(1,1,1,0) + 0.1,
+    mar = c(1,1,3,1) + 0.1)
+lapply(1:10, function(i) {
+  plot(density(NMA479770mcmcDF[,i]), main = names(NMA479770mcmcDF[i]), ylim = range(c(0,2)), ylab = "")
+  lines(xy[,i], xy[,i+10], col="red", lwd=2)
+})
+dev.off()
