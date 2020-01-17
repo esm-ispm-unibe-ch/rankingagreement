@@ -297,6 +297,11 @@ head(pBVvsSUCRA_AO)
     results["Yilmaz tauAP","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AP, digits = 2)["Median"], " (", summary(pBVvsSUCRA_AP, digits = 2)["1st Qu."], ", ", summary(pBVvsSUCRA_AP, digits = 2)["3rd Qu."], ")")
     results["Average Overlap","pBV vs SUCRA"] <-paste0(summary(pBVvsSUCRA_AO, digits = 2)["Median"], " (", summary(pBVvsSUCRA_AO, digits = 2)["1st Qu."], ", ", summary(pBVvsSUCRA_AO, digits = 2)["3rd Qu."], ")")
 
+sum(pBVvsSUCRA_s<.9)
+sum(pBVvsSUCRA_s<.9)/length(pBVvsSUCRA_s)
+
+
+
 # save all SUCRA vs Avg TE in a vector separately for kendall, spearman and AP, then store median and interquartile range
 SUCRAvsAvgTE_s <- c(sapply(1:length(con_ranks), function(i) round(spearman_con[[i]]["SUCRA_ranks","Avg TE ranks"], digits = 3)),
                     sapply(1:length(bin_ranks), function(i) round(spearman_bin[[i]]["SUCRA_ranks","Avg TE ranks"], digits = 3)))
@@ -324,6 +329,9 @@ head(SUCRAvsAvgTE_AO)
     results["Kendall tau","SUCRA vs ATE"]  <- paste0(summary(SUCRAvsAvgTE_k, digits = 2)["Median"], " (", summary(SUCRAvsAvgTE_k, digits = 2)["1st Qu."], ", ", summary(SUCRAvsAvgTE_k, digits = 2)["3rd Qu."], ")")
     results["Yilmaz tauAP","SUCRA vs ATE"] <- paste0(summary(SUCRAvsAvgTE_AP, digits = 2)["Median"], " (", summary(SUCRAvsAvgTE_AP, digits = 2)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AP, digits = 2)["3rd Qu."], ")")
     results["Average Overlap","SUCRA vs ATE"] <-paste0(summary(SUCRAvsAvgTE_AO, digits = 2)["Median"], " (", summary(SUCRAvsAvgTE_AO, digits = 2)["1st Qu."], ", ", summary(SUCRAvsAvgTE_AO, digits = 2)["3rd Qu."], ")")
+
+sum(SUCRAvsAvgTE_s<.9)
+sum(SUCRAvsAvgTE_s<.9)/length(SUCRAvsAvgTE_s)
 
 
 # save all pBV vs Avg TE in a vector separately for kendall, spearman and AP then store median and interquartile range
@@ -355,6 +363,10 @@ head(pBVvsAvgTE_AO)
     results["Average Overlap","pBV vs ATE"] <-paste0(summary(pBVvsAvgTE_AO, digits = 2)["Median"], " (", summary(pBVvsAvgTE_AO, digits = 2)["1st Qu."], ", ", summary(pBVvsAvgTE_AO, digits = 2)["3rd Qu."], ")")
 
 
+sum(pBVvsAvgTE_s<.9)
+sum(pBVvsAvgTE_s<.9)/length(pBVvsAvgTE_s)
+
+
 
 
 # save all SUCRA vs SUCRA jags in a vector separately for kendall and spearman, then store proportion of network with values >0.9
@@ -376,6 +388,12 @@ SUCRAvsSUCRAjags_AO <- c(sapply(1:length(con_ranks), function(i) if(as.numeric(c
 names(SUCRAvsSUCRAjags_AO) <- as.character(c(continuousIDs,binaryIDs))
 SUCRAvsSUCRAjags_AO <- Filter(Negate(anyNA), SUCRAvsSUCRAjags_AO)   ## exclude any NAs
 
+#only consider networks with original measures OR or SMD
+SUCRAvsSUCRAjags_s <- Filter(Negate(anyNA),SUCRAvsSUCRAjags_s[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_s))])
+SUCRAvsSUCRAjags_k <- Filter(Negate(anyNA),SUCRAvsSUCRAjags_k[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_k))])
+SUCRAvsSUCRAjags_AP <- Filter(Negate(anyNA),SUCRAvsSUCRAjags_AP[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_AP))])
+SUCRAvsSUCRAjags_AO <- Filter(Negate(anyNA),SUCRAvsSUCRAjags_AO[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_AO))])
+
 head(SUCRAvsSUCRAjags_s)
 head(SUCRAvsSUCRAjags_k)
 head(SUCRAvsSUCRAjags_AP)
@@ -385,12 +403,11 @@ head(SUCRAvsSUCRAjags_AO)
     # results["Yilmaz tauAP","SUCRA vs SUCRAjags"] <- paste0(summary(SUCRAvsSUCRAjags_AP, digits = 2)["Median"], " (", summary(SUCRAvsSUCRAjags_AP, digits = 2)["1st Qu."], ", ", summary(SUCRAvsSUCRAjags_AP, digits = 2)["3rd Qu."], ")")
     # results["Average Overlap","SUCRA vs SUCRAjags"] <-paste0(summary(SUCRAvsSUCRAjags_AO, digits = 2)["Median"], " (", summary(SUCRAvsSUCRAjags_AO, digits = 2)["1st Qu."], ", ", summary(SUCRAvsSUCRAjags_AO, digits = 2)["3rd Qu."], ")")
 
-# check agreement between the two SUCRA only for networks with original measures OR or SMD ans save these in results for the paper
-sumSUCRAs <-  summary(SUCRAvsSUCRAjags_s[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_s))], digits = 2)
-sumSUCRAk <- summary(SUCRAvsSUCRAjags_k[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_k))], digits = 2)
-sumSUCRAap <- summary(SUCRAvsSUCRAjags_AP[match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_AP))], digits = 2)
-sumSUCRAao <- summary(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA), match(nmadb[nmadb$Effect.Measure=="odds ratio" |
-                                                              nmadb$Effect.Measure=="standardized mean difference","Record.ID"], names(SUCRAvsSUCRAjags_AO)))], digits = 2)
+# check agreement between the two SUCRA and save these in results for the paper
+sumSUCRAs <-  summary(SUCRAvsSUCRAjags_s, digits = 2)
+sumSUCRAk <- summary(SUCRAvsSUCRAjags_k, digits = 2)
+sumSUCRAap <- summary(SUCRAvsSUCRAjags_AP, digits = 2)
+sumSUCRAao <- summary(SUCRAvsSUCRAjags_AO, digits = 2)
 
 
 results["Spearman rho","SUCRA vs SUCRAjags"] <- paste0(sumSUCRAs["Median"], " (", sumSUCRAs["1st Qu."], ", ", sumSUCRAs["3rd Qu."], ")")
@@ -398,34 +415,10 @@ results["Kendall tau","SUCRA vs SUCRAjags"]  <- paste0(sumSUCRAk["Median"], " ("
 results["Yilmaz tauAP","SUCRA vs SUCRAjags"] <- paste0(sumSUCRAap["Median"], " (", sumSUCRAap["1st Qu."], ", ", sumSUCRAap["3rd Qu."], ")")
 results["Average Overlap","SUCRA vs SUCRAjags"] <-paste0(sumSUCRAao["Median"], " (", sumSUCRAao["1st Qu."], ", ", sumSUCRAao["3rd Qu."], ")")
 
-    SUCRAs_90 <- sum(SUCRAvsSUCRAjags_s>0.9)/length(SUCRAvsSUCRAjags_s) # % of networks with spearman correlation >0.9
-    SUCRAk_90 <- sum(SUCRAvsSUCRAjags_k>0.9)/length(SUCRAvsSUCRAjags_k) # % of networks with kendall correlation >0.9
-    SUCRAap_90 <-  sum(SUCRAvsSUCRAjags_AP>0.9)/length(SUCRAvsSUCRAjags_AP) # % of networks with Yilmaz AP correlation >0.9
-    SUCRAao_90 <- sum(SUCRAvsSUCRAjags_AO>0.9)/length(SUCRAvsSUCRAjags_AO)# % of networks with AO >0.9
-
-# check same proportions only for networks with original measures OR or SMD
-sum(SUCRAvsSUCRAjags_s[Filter(Negate(anyNA),
-                       match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
-                       names(SUCRAvsSUCRAjags_s)))]>0.8999)/
-  length(SUCRAvsSUCRAjags_s[Filter(Negate(anyNA),
-                            match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
-                            names(SUCRAvsSUCRAjags_s)))])
-
-sum(SUCRAvsSUCRAjags_k[Filter(Negate(anyNA),
-                       match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
-                       names(SUCRAvsSUCRAjags_k)))]>0.9)/
-  length(SUCRAvsSUCRAjags_k[Filter(Negate(anyNA),
-                            match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
-                            names(SUCRAvsSUCRAjags_k)))])
-
-
-sum(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA),
-                        match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
-                        names(SUCRAvsSUCRAjags_AO)))]>0.9)/
-  length(SUCRAvsSUCRAjags_AO[Filter(Negate(anyNA),
-                             match(nmadb[nmadb$Effect.Measure=="odds ratio" | nmadb$Effect.Measure=="standardized mean difference","Record.ID"],
-                             names(SUCRAvsSUCRAjags_AO)))])
-
+    SUCRAs_90 <- sum(SUCRAvsSUCRAjags_s<0.9)/length(SUCRAvsSUCRAjags_s) # % of networks with spearman correlation <0.9
+    SUCRAk_90 <- sum(SUCRAvsSUCRAjags_k<0.9)/length(SUCRAvsSUCRAjags_k) # % of networks with kendall correlation  <0.9
+    SUCRAap_90 <-  sum(SUCRAvsSUCRAjags_AP<0.9)/length(SUCRAvsSUCRAjags_AP) # % of networks with Yilmaz AP correlation  <0.9
+    SUCRAao_90 <- sum(SUCRAvsSUCRAjags_AO<0.9)/length(SUCRAvsSUCRAjags_AO)# % of networks with AO  <0.9
 
 
 # export matrix results in table
